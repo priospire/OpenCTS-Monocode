@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OpenCTS.App/OpenCTS.App.csproj" />
+    <Project Path="src/OpenCTS.Core/OpenCTS.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OpenCTS.Tests/OpenCTS.Tests.csproj" />
+  </Folder>
+</Solution>

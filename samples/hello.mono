@@ -1,0 +1,44 @@
+stage {
+  extension pen
+  var score = 0
+  var power = 0
+  cloud var highScore = 0
+  list inventory = ["key", "coin"]
+  broadcast gameOver = "game over"
+  costume "Backdrop" 480x360 center 240,180 {
+    rect 0,0 480,360 fill="#f7fbff"
+    line 40,300 440,300 stroke="#2f80ed" width=6
+    text 40,80 "Hello Monocode" size=32 fill="#111827"
+  }
+
+  @greenflag:
+    score = 0
+    power = 2 ^ 3
+    inventory.add "star"
+    event.broadcast gameOver
+
+  @key "space":
+    repeat 4:
+      pen.clear
+      motion.move 15
+}
+
+sprite "Player" {
+  state x=0 y=0 direction=90 size=100 visible=true layer=2
+  rotationStyle "all around"
+  costume "Player" 120x120 center 60,60 {
+    circle 60,60 r=45 fill="#ffffff" stroke="#22c55e" width=6
+    ellipse 60,72 rx=28 ry=16 fill="#bfdbfe" stroke="#1d4ed8" width=3
+    path "M 35 48 C 48 30, 72 30, 85 48" stroke="#111827" width=4 fill="none"
+  }
+
+  @greenflag:
+    looks.say "Hello from Monocode" 2s
+    motion.goto 0,0
+
+  @event.received gameOver:
+    if score == 0 and power == 8:
+      looks.say "Monocode is ready" 2s
+    else:
+      looks.say "Check failed" 2s
+}
