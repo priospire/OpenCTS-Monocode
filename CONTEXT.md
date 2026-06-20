@@ -160,4 +160,4 @@ Published artifacts:
 
 ## Notes
 
-The canonical repository is `priospire/OpenCTS-Monocode`. Build and smoke artifacts are ignored by `.gitignore`; the self-contained `Monocode.exe` is distributed as a GitHub release asset because it exceeds GitHub's 100 MB Git object limit.
+The canonical repository is `priospire/OpenCTS-Monocode`. Build and smoke artifacts are ignored by `.gitignore`; the self-contained `Monocode.exe` is tracked through Git LFS and is also distributed as a GitHub release asset.
