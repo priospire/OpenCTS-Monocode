@@ -13,7 +13,38 @@ public sealed class CtsParseResult
     public IReadOnlyList<CtsDiagnostic> Diagnostics { get; }
 }
 
-public sealed record CtsCompilationUnit(IReadOnlyList<CtsTargetDeclaration> Targets, SourceSpan Span);
+public sealed record CtsCompilationUnit(IReadOnlyList<CtsTargetDeclaration> Targets, SourceSpan Span)
+{
+    public IReadOnlyList<CtsFileDeclaration> FileDeclarations { get; init; } = [];
+}
+
+public abstract record CtsFileDeclaration(SourceSpan Span);
+
+public sealed record CtsConstDeclaration(
+    string Name,
+    CtsValue Value,
+    SourceSpan Span) : CtsFileDeclaration(Span);
+
+public sealed record CtsEnumDeclaration(
+    string Name,
+    IReadOnlyList<CtsEnumMember> Members,
+    SourceSpan Span) : CtsFileDeclaration(Span);
+
+public sealed record CtsEnumMember(
+    string Name,
+    CtsValue? Value,
+    SourceSpan Span);
+
+public sealed record CtsStructDeclaration(
+    string Name,
+    IReadOnlyList<CtsStructField> Fields,
+    SourceSpan Span) : CtsFileDeclaration(Span);
+
+public sealed record CtsStructField(
+    string Name,
+    string TypeName,
+    CtsValue? DefaultValue,
+    SourceSpan Span);
 
 public sealed record CtsTargetDeclaration(
     bool IsStage,
@@ -24,10 +55,23 @@ public sealed record CtsTargetDeclaration(
 
 public abstract record CtsTargetMember(SourceSpan Span);
 
+public enum CtsVariableScope
+{
+    Contextual,
+    Global,
+    Sprite
+}
+
 public sealed record CtsVariableDeclaration(
     string Name,
     CtsValue InitialValue,
     bool IsCloud,
+    SourceSpan Span,
+    CtsVariableScope Scope = CtsVariableScope.Contextual) : CtsTargetMember(Span);
+
+public sealed record CtsStructInstanceDeclaration(
+    string Name,
+    string TypeName,
     SourceSpan Span) : CtsTargetMember(Span);
 
 public sealed record CtsListDeclaration(
@@ -95,13 +139,15 @@ public sealed record CtsProcedureDefinition(
     string? DisplaySignature,
     bool Warp,
     IReadOnlyList<CtsStatement> Statements,
-    SourceSpan Span) : CtsScript(Span);
+    SourceSpan Span,
+    string? DeclaredReturnType = null) : CtsScript(Span);
 
 public sealed record CtsProcedureParameter(
     string Name,
     CtsParameterType Type,
     CtsValue? DefaultValue,
-    SourceSpan Span);
+    SourceSpan Span,
+    string? DeclaredType = null);
 
 public enum CtsParameterType
 {
@@ -111,6 +157,11 @@ public enum CtsParameterType
 }
 
 public abstract record CtsStatement(SourceSpan Span);
+
+public sealed record CtsLocalVariableDeclaration(
+    string Name,
+    CtsValue InitialValue,
+    SourceSpan Span) : CtsStatement(Span);
 
 public sealed record CtsAliasStatement(
     string CommandName,

@@ -26,6 +26,11 @@ public static class CtsLexer
     {
         "stage",
         "sprite",
+        "const",
+        "enum",
+        "struct",
+        "global",
+        "local",
         "proc",
         "as",
         "warp",

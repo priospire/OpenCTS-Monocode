@@ -47,6 +47,9 @@ public static class CtsCompiler
         private readonly List<string> _extensions = [];
         private readonly HashSet<string> _extensionSet = new(StringComparer.Ordinal);
         private readonly HashSet<string> _terminalBlocks = new(StringComparer.Ordinal);
+        private readonly ScratchIdAllocator _dataIdAllocator = new();
+        private readonly ScratchIdAllocator _argumentIdAllocator = new();
+        private readonly ScratchIdAllocator _blockIdAllocator = new();
         private JsonObject _currentBlocks = [];
         private TargetBuildData _currentTargetData = TargetBuildData.Empty;
         private TargetBuildData _stageTargetData = TargetBuildData.Empty;
@@ -61,26 +64,50 @@ public static class CtsCompiler
         {
             CtsParseResult parseResult = CtsParser.Parse(source);
             _diagnostics.AddRange(parseResult.Diagnostics);
+            if (ScratchAsmLanguage.IsCompatibilitySourceName(_sourceName))
+            {
+                _diagnostics.Add(new CtsDiagnostic(
+                    "CTS2003",
+                    DiagnosticSeverity.Warning,
+                    "The .mono extension is supported for compatibility; use the canonical ScratchASM .sasm extension.",
+                    parseResult.CompilationUnit.Span));
+            }
 
             if (HasErrors())
             {
                 return CreateResult([]);
             }
 
-            int stageCount = parseResult.CompilationUnit.Targets.Count(static target => target.IsStage);
+            CtsSemanticModel semanticModel = CtsBinder.Bind(parseResult.CompilationUnit);
+            _diagnostics.AddRange(semanticModel.Diagnostics);
+            if (HasErrors())
+            {
+                return CreateResult([]);
+            }
+
+            CtsLocalLoweringResult loweringResult = CtsLocalLowerer.Lower(semanticModel);
+            _diagnostics.AddRange(loweringResult.Diagnostics);
+            if (HasErrors())
+            {
+                return CreateResult([]);
+            }
+
+            CtsCompilationUnit compilationUnit = loweringResult.CompilationUnit;
+
+            int stageCount = compilationUnit.Targets.Count(static target => target.IsStage);
             if (stageCount != 1)
             {
-                AddError("CTS1004", "A Monocode project must declare exactly one stage target.", parseResult.CompilationUnit.Span);
+                AddError("CTS1004", "A ScratchASM project must declare exactly one stage target.", compilationUnit.Span);
                 return CreateResult([]);
             }
 
-            ValidateProcedures(parseResult.CompilationUnit);
+            ValidateProcedures(compilationUnit);
             if (HasErrors())
             {
                 return CreateResult([]);
             }
 
-            CtsTargetDeclaration[] orderedTargets = parseResult.CompilationUnit.Targets
+            CtsTargetDeclaration[] orderedTargets = compilationUnit.Targets
                 .OrderByDescending(static target => target.IsStage)
                 .ToArray();
             List<TargetBuildData> targetData = [];
@@ -114,7 +141,8 @@ public static class CtsCompiler
                 {
                     ["semver"] = "3.0.0",
                     ["vm"] = "0.2.0",
-                    ["agent"] = "OpenCTS"
+                    ["agent"] = "OpenCTS",
+                    ["scratchasm-ready"] = true
                 }
             };
 
@@ -193,7 +221,7 @@ public static class CtsCompiler
             {
                 string safeName = SanitizeIdPart(procedure.Name);
                 string[] argumentIds = procedure.Parameters
-                    .Select(parameter => $"{safeName}_{SanitizeIdPart(parameter.Name)}")
+                    .Select(parameter => _argumentIdAllocator.Allocate($"{safeName}_{SanitizeIdPart(parameter.Name)}"))
                     .ToArray();
                 _procedures[procedure.Name] = new ProcedureInfo(procedure, argumentIds);
             }
@@ -210,7 +238,7 @@ public static class CtsCompiler
                 {
                     case CtsVariableDeclaration variable:
                     {
-                        string id = $"{targetPrefix}_var_{SanitizeIdPart(variable.Name)}";
+                        string id = _dataIdAllocator.Allocate($"{targetPrefix}_var_{SanitizeIdPart(variable.Name)}");
                         JsonArray values = JsonArrayOf(variable.Name, ValueToScratchText(variable.InitialValue));
                         if (variable.IsCloud)
                         {
@@ -224,7 +252,7 @@ public static class CtsCompiler
 
                     case CtsListDeclaration list:
                     {
-                        string id = $"{targetPrefix}_list_{SanitizeIdPart(list.Name)}";
+                        string id = _dataIdAllocator.Allocate($"{targetPrefix}_list_{SanitizeIdPart(list.Name)}");
                         JsonArray items = [];
                         foreach (CtsValue item in list.Items)
                         {
@@ -238,7 +266,7 @@ public static class CtsCompiler
 
                     case CtsBroadcastDeclaration broadcast:
                     {
-                        string id = $"{targetPrefix}_broadcast_{SanitizeIdPart(broadcast.Name)}";
+                        string id = _dataIdAllocator.Allocate($"{targetPrefix}_broadcast_{SanitizeIdPart(broadcast.Name)}");
                         string message = ValueToScratchText(broadcast.Message);
                         data.Broadcasts[id] = message;
                         data.BroadcastsByName[broadcast.Name] = new BroadcastInfo(id, message);
@@ -1784,7 +1812,7 @@ public static class CtsCompiler
         private string NewBlockId(string prefix)
         {
             _nextBlockId++;
-            return $"{prefix}{_nextBlockId}";
+            return _blockIdAllocator.Allocate($"{prefix}{_nextBlockId}");
         }
 
         private static string SanitizeIdPart(string value)

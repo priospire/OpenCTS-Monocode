@@ -4,6 +4,21 @@
 
 OpenCTS is a .NET 10 Windows utility that validates Scratch 3 projects, compiles Monocode, optionally repairs recoverable `.sb3` damage, and writes Scratch-readable `.sb3` archives.
 
+## ScratchASM v0.2 Work In Progress
+
+The verified core-language phase of the Monocode-to-ScratchASM migration is implemented. User-facing application branding, canonical files, the desktop UI, decompiler, dedicated IDE, VS Code extension, MCP server, and release executable have not yet been migrated.
+
+Implemented and verified core behavior:
+
+- `.sasm` is the canonical ScratchASM source extension
+- `.mono` remains compatible and emits warning `CTS2003` once per compile
+- file-scoped constants and explicitly valued enums
+- flat structs lowered to ordinary Scratch variables
+- explicit stage-global and sprite-local variable scopes
+- mutable procedure-local variables lowered through standard Scratch-compatible frame lists
+- collision-safe generated identifiers and ScratchASM-aware syntax classification
+- clean build and 62 passing tests with zero warnings
+
 Monocode is the user-facing language name and `.mono` is its only accepted source extension. `.cts` is explicitly rejected because that extension is already associated with TypeScript. Internal implementation types retain the established `Cts*` names.
 
 Key paths:

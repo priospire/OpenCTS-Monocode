@@ -10,6 +10,7 @@ public static class CtsParser
 
         List<CtsDiagnostic> diagnostics = [];
         List<CtsTargetDeclaration> targets = [];
+        List<CtsFileDeclaration> fileDeclarations = [];
         IReadOnlyList<SourceLine> lines = ReadLines(source);
         int index = 0;
 
@@ -21,6 +22,40 @@ public static class CtsParser
             if (trimmed.Length == 0)
             {
                 index++;
+                continue;
+            }
+
+            if (StartsWithWord(trimmed, "const"))
+            {
+                CtsConstDeclaration? declaration = ParseConstDeclaration(line, content, diagnostics);
+                if (declaration is not null)
+                {
+                    fileDeclarations.Add(declaration);
+                }
+
+                index++;
+                continue;
+            }
+
+            if (StartsWithWord(trimmed, "enum"))
+            {
+                CtsEnumDeclaration? declaration = ParseEnumDeclaration(lines, ref index, diagnostics);
+                if (declaration is not null)
+                {
+                    fileDeclarations.Add(declaration);
+                }
+
+                continue;
+            }
+
+            if (StartsWithWord(trimmed, "struct"))
+            {
+                CtsStructDeclaration? declaration = ParseStructDeclaration(lines, ref index, diagnostics);
+                if (declaration is not null)
+                {
+                    fileDeclarations.Add(declaration);
+                }
+
                 continue;
             }
 
@@ -40,7 +75,281 @@ public static class CtsParser
             ? new SourceSpan(new SourceLocation(1, 1), new SourceLocation(1, 1))
             : new SourceSpan(new SourceLocation(1, 1), EndOfLine(lines[^1]));
 
-        return new CtsParseResult(new CtsCompilationUnit(targets, unitSpan), diagnostics);
+        CtsCompilationUnit unit = new(targets, unitSpan)
+        {
+            FileDeclarations = fileDeclarations
+        };
+        return new CtsParseResult(unit, diagnostics);
+    }
+
+    private static CtsConstDeclaration? ParseConstDeclaration(
+        SourceLine line,
+        string content,
+        List<CtsDiagnostic> diagnostics)
+    {
+        string trimmed = content.Trim();
+        int startColumn = FirstNonWhitespaceColumn(content);
+        SourceSpan span = Span(line.LineNumber, startColumn, startColumn + trimmed.Length);
+        CtsLineScanner scanner = new(trimmed, line.LineNumber, startColumn);
+        scanner.ConsumeWord("const");
+        scanner.SkipWhitespace();
+        string? name = scanner.ReadIdentifier();
+        if (name is null)
+        {
+            AddError(diagnostics, "Expected a constant name.", scanner.PointSpan());
+            return null;
+        }
+
+        int equals = FindAssignmentEquals(trimmed);
+        if (equals < 0)
+        {
+            AddError(diagnostics, "Expected '=' after constant name.", scanner.PointSpan());
+            return null;
+        }
+
+        List<CtsValue> values = ParseExpressions(trimmed[(equals + 1)..], line.LineNumber, startColumn + equals + 1, diagnostics);
+        if (values.Count != 1)
+        {
+            AddError(diagnostics, "Constant declarations require exactly one expression.", span);
+            return null;
+        }
+
+        return new CtsConstDeclaration(name, values[0], span);
+    }
+
+    private static CtsEnumDeclaration? ParseEnumDeclaration(
+        IReadOnlyList<SourceLine> lines,
+        ref int index,
+        List<CtsDiagnostic> diagnostics)
+    {
+        SourceLine line = lines[index];
+        string content = StripComment(line.Text);
+        string trimmed = content.Trim();
+        int startColumn = FirstNonWhitespaceColumn(content);
+        SourceSpan span = Span(line.LineNumber, startColumn, startColumn + trimmed.Length);
+        CtsLineScanner scanner = new(trimmed, line.LineNumber, startColumn);
+        scanner.ConsumeWord("enum");
+        scanner.SkipWhitespace();
+        string? name = scanner.ReadIdentifier();
+        scanner.SkipWhitespace();
+        if (name is null || !scanner.TryConsume('{'))
+        {
+            AddError(diagnostics, "Expected 'enum Name {'.", span);
+            index++;
+            return null;
+        }
+
+        List<CtsEnumMember> members = [];
+        int openBrace = trimmed.IndexOf('{');
+        int closeBrace = trimmed.LastIndexOf('}');
+        if (closeBrace > openBrace)
+        {
+            foreach (string item in SplitInlineDeclarationItems(trimmed[(openBrace + 1)..closeBrace]))
+            {
+                string memberText = item.Trim();
+                if (memberText.Length == 0)
+                {
+                    continue;
+                }
+
+                SourceSpan memberSpan = Span(line.LineNumber, startColumn + openBrace + 1, startColumn + closeBrace);
+                int equals = FindAssignmentEquals(memberText);
+                string memberName = (equals < 0 ? memberText : memberText[..equals]).Trim();
+                if (!IsValidSimpleIdentifier(memberName))
+                {
+                    AddError(diagnostics, "Expected an enum member name.", memberSpan);
+                    continue;
+                }
+
+                CtsValue? value = null;
+                if (equals >= 0)
+                {
+                    List<CtsValue> values = ParseExpressions(memberText[(equals + 1)..], line.LineNumber, startColumn + openBrace + equals + 2, diagnostics);
+                    if (values.Count == 1)
+                    {
+                        value = values[0];
+                    }
+                }
+
+                members.Add(new CtsEnumMember(memberName, value, memberSpan));
+            }
+
+            index++;
+            return new CtsEnumDeclaration(name, members, span);
+        }
+
+        index++;
+        while (index < lines.Count)
+        {
+            SourceLine memberLine = lines[index];
+            string memberContent = StripComment(memberLine.Text);
+            string memberText = memberContent.Trim();
+            if (memberText.Length == 0)
+            {
+                index++;
+                continue;
+            }
+
+            if (memberText == "}")
+            {
+                index++;
+                return new CtsEnumDeclaration(name, members, span);
+            }
+
+            memberText = memberText.TrimEnd(',').TrimEnd();
+            int memberColumn = FirstNonWhitespaceColumn(memberContent);
+            SourceSpan memberSpan = Span(memberLine.LineNumber, memberColumn, memberColumn + memberText.Length);
+            int equals = FindAssignmentEquals(memberText);
+            string memberName = (equals < 0 ? memberText : memberText[..equals]).Trim();
+            if (!IsValidSimpleIdentifier(memberName))
+            {
+                AddError(diagnostics, "Expected an enum member name.", memberSpan);
+                index++;
+                continue;
+            }
+
+            CtsValue? value = null;
+            if (equals >= 0)
+            {
+                List<CtsValue> values = ParseExpressions(memberText[(equals + 1)..], memberLine.LineNumber, memberColumn + equals + 1, diagnostics);
+                if (values.Count == 1)
+                {
+                    value = values[0];
+                }
+            }
+
+            members.Add(new CtsEnumMember(memberName, value, memberSpan));
+            index++;
+        }
+
+        AddError(diagnostics, "Expected '}' to close enum declaration.", span);
+        return new CtsEnumDeclaration(name, members, span);
+    }
+
+    private static CtsStructDeclaration? ParseStructDeclaration(
+        IReadOnlyList<SourceLine> lines,
+        ref int index,
+        List<CtsDiagnostic> diagnostics)
+    {
+        SourceLine line = lines[index];
+        string content = StripComment(line.Text);
+        string trimmed = content.Trim();
+        int startColumn = FirstNonWhitespaceColumn(content);
+        SourceSpan span = Span(line.LineNumber, startColumn, startColumn + trimmed.Length);
+        CtsLineScanner scanner = new(trimmed, line.LineNumber, startColumn);
+        scanner.ConsumeWord("struct");
+        scanner.SkipWhitespace();
+        string? name = scanner.ReadIdentifier();
+        scanner.SkipWhitespace();
+        if (name is null || !scanner.TryConsume('{'))
+        {
+            AddError(diagnostics, "Expected 'struct Name {'.", span);
+            index++;
+            return null;
+        }
+
+        List<CtsStructField> fields = [];
+        int openBrace = trimmed.IndexOf('{');
+        int closeBrace = trimmed.LastIndexOf('}');
+        if (closeBrace > openBrace)
+        {
+            foreach (string item in SplitInlineDeclarationItems(trimmed[(openBrace + 1)..closeBrace]))
+            {
+                string fieldText = item.Trim();
+                if (fieldText.Length == 0)
+                {
+                    continue;
+                }
+
+                SourceSpan fieldSpan = Span(line.LineNumber, startColumn + openBrace + 1, startColumn + closeBrace);
+                int colon = fieldText.IndexOf(':');
+                int equals = FindAssignmentEquals(fieldText);
+                if (colon <= 0 || equals >= 0 && equals < colon)
+                {
+                    AddError(diagnostics, "Expected a struct field in the form 'name: type = default'.", fieldSpan);
+                    continue;
+                }
+
+                string fieldName = fieldText[..colon].Trim();
+                string typeName = fieldText[(colon + 1)..(equals < 0 ? fieldText.Length : equals)].Trim();
+                if (!IsValidSimpleIdentifier(fieldName) || !IsValidSimpleIdentifier(typeName))
+                {
+                    AddError(diagnostics, "Expected valid struct field and type names.", fieldSpan);
+                    continue;
+                }
+
+                CtsValue? defaultValue = null;
+                if (equals >= 0)
+                {
+                    List<CtsValue> values = ParseExpressions(fieldText[(equals + 1)..], line.LineNumber, startColumn + openBrace + equals + 2, diagnostics);
+                    if (values.Count == 1)
+                    {
+                        defaultValue = values[0];
+                    }
+                }
+
+                fields.Add(new CtsStructField(fieldName, typeName, defaultValue, fieldSpan));
+            }
+
+            index++;
+            return new CtsStructDeclaration(name, fields, span);
+        }
+
+        index++;
+        while (index < lines.Count)
+        {
+            SourceLine fieldLine = lines[index];
+            string fieldContent = StripComment(fieldLine.Text);
+            string fieldText = fieldContent.Trim();
+            if (fieldText.Length == 0)
+            {
+                index++;
+                continue;
+            }
+
+            if (fieldText == "}")
+            {
+                index++;
+                return new CtsStructDeclaration(name, fields, span);
+            }
+
+            fieldText = fieldText.TrimEnd(',').TrimEnd();
+            int fieldColumn = FirstNonWhitespaceColumn(fieldContent);
+            SourceSpan fieldSpan = Span(fieldLine.LineNumber, fieldColumn, fieldColumn + fieldText.Length);
+            int colon = fieldText.IndexOf(':');
+            int equals = FindAssignmentEquals(fieldText);
+            if (colon <= 0 || equals >= 0 && equals < colon)
+            {
+                AddError(diagnostics, "Expected a struct field in the form 'name: type = default'.", fieldSpan);
+                index++;
+                continue;
+            }
+
+            string fieldName = fieldText[..colon].Trim();
+            string typeName = fieldText[(colon + 1)..(equals < 0 ? fieldText.Length : equals)].Trim();
+            if (!IsValidSimpleIdentifier(fieldName) || !IsValidSimpleIdentifier(typeName))
+            {
+                AddError(diagnostics, "Expected valid struct field and type names.", fieldSpan);
+                index++;
+                continue;
+            }
+
+            CtsValue? defaultValue = null;
+            if (equals >= 0)
+            {
+                List<CtsValue> values = ParseExpressions(fieldText[(equals + 1)..], fieldLine.LineNumber, fieldColumn + equals + 1, diagnostics);
+                if (values.Count == 1)
+                {
+                    defaultValue = values[0];
+                }
+            }
+
+            fields.Add(new CtsStructField(fieldName, typeName, defaultValue, fieldSpan));
+            index++;
+        }
+
+        AddError(diagnostics, "Expected '}' to close struct declaration.", span);
+        return new CtsStructDeclaration(name, fields, span);
     }
 
     private static CtsTargetBody ParseTargetBody(
@@ -103,7 +412,7 @@ public static class CtsParser
                 continue;
             }
 
-            AddError(diagnostics, "Expected a Monocode declaration, hat block, or procedure declaration.", Span(line.LineNumber, startColumn, startColumn + trimmed.Length));
+            AddError(diagnostics, "Expected a ScratchASM declaration, hat block, or procedure declaration.", Span(line.LineNumber, startColumn, startColumn + trimmed.Length));
             index++;
         }
 
@@ -125,6 +434,20 @@ public static class CtsParser
         string content = StripComment(line.Text);
         string trimmed = content.Trim();
         SourceSpan memberSpan = Span(line.LineNumber, startColumn, startColumn + trimmed.Length);
+
+        if (StartsWithWord(trimmed, "global"))
+        {
+            member = ParseScopedVariableDeclaration(trimmed, line.LineNumber, startColumn, memberSpan, CtsVariableScope.Global, isCloud: false, diagnostics);
+            index++;
+            return true;
+        }
+
+        if (StartsWithWord(trimmed, "sprite"))
+        {
+            member = ParseScopedVariableDeclaration(trimmed, line.LineNumber, startColumn, memberSpan, CtsVariableScope.Sprite, isCloud: false, diagnostics);
+            index++;
+            return true;
+        }
 
         if (StartsWithWord(trimmed, "var"))
         {
@@ -181,7 +504,49 @@ public static class CtsParser
             return true;
         }
 
+        CtsLineScanner instanceScanner = new(trimmed, line.LineNumber, startColumn);
+        string? instanceName = instanceScanner.ReadIdentifier();
+        instanceScanner.SkipWhitespace();
+        if (instanceName is not null && instanceScanner.TryConsume(':'))
+        {
+            instanceScanner.SkipWhitespace();
+            string? typeName = instanceScanner.ReadIdentifier();
+            instanceScanner.SkipWhitespace();
+            if (typeName is null || !instanceScanner.End)
+            {
+                AddError(diagnostics, "Expected a struct instance in the form 'name: Type'.", memberSpan);
+            }
+            else
+            {
+                member = new CtsStructInstanceDeclaration(instanceName, typeName, memberSpan);
+            }
+
+            index++;
+            return true;
+        }
+
         return false;
+    }
+
+    private static CtsVariableDeclaration? ParseScopedVariableDeclaration(
+        string trimmed,
+        int lineNumber,
+        int startColumn,
+        SourceSpan memberSpan,
+        CtsVariableScope scope,
+        bool isCloud,
+        List<CtsDiagnostic> diagnostics)
+    {
+        CtsLineScanner scanner = new(trimmed, lineNumber, startColumn);
+        scanner.ConsumeWord(scope == CtsVariableScope.Global ? "global" : "sprite");
+        scanner.SkipWhitespace();
+        if (!scanner.ConsumeWord("var"))
+        {
+            AddError(diagnostics, $"Expected 'var' after '{(scope == CtsVariableScope.Global ? "global" : "sprite")}'.", scanner.PointSpan());
+            return null;
+        }
+
+        return ParseVariableTail(scanner, memberSpan, scope, isCloud, diagnostics);
     }
 
     private static CtsVariableDeclaration? ParseVariableDeclaration(
@@ -194,6 +559,37 @@ public static class CtsParser
     {
         CtsLineScanner scanner = new(trimmed, lineNumber, startColumn);
         scanner.ConsumeWord("var");
+        return ParseVariableTail(scanner, memberSpan, CtsVariableScope.Contextual, isCloud, diagnostics);
+    }
+
+    private static CtsVariableDeclaration? ParseCloudVariableDeclaration(
+        string trimmed,
+        int lineNumber,
+        int startColumn,
+        SourceSpan memberSpan,
+        List<CtsDiagnostic> diagnostics)
+    {
+        CtsLineScanner scanner = new(trimmed, lineNumber, startColumn);
+        scanner.ConsumeWord("cloud");
+        scanner.SkipWhitespace();
+        scanner.ConsumeWord("global");
+        scanner.SkipWhitespace();
+        if (!scanner.ConsumeWord("var"))
+        {
+            AddError(diagnostics, "Expected 'var' after 'cloud'.", scanner.PointSpan());
+            return null;
+        }
+
+        return ParseVariableTail(scanner, memberSpan, CtsVariableScope.Global, isCloud: true, diagnostics);
+    }
+
+    private static CtsVariableDeclaration? ParseVariableTail(
+        CtsLineScanner scanner,
+        SourceSpan memberSpan,
+        CtsVariableScope scope,
+        bool isCloud,
+        List<CtsDiagnostic> diagnostics)
+    {
         scanner.SkipWhitespace();
         string? name = scanner.ReadIdentifier();
         if (name is null)
@@ -209,43 +605,8 @@ public static class CtsParser
             return null;
         }
 
-        CtsValue? value = scanner.ReadValue(diagnostics);
-        return value is null ? null : new CtsVariableDeclaration(name, value, isCloud, memberSpan);
-    }
-
-    private static CtsVariableDeclaration? ParseCloudVariableDeclaration(
-        string trimmed,
-        int lineNumber,
-        int startColumn,
-        SourceSpan memberSpan,
-        List<CtsDiagnostic> diagnostics)
-    {
-        CtsLineScanner scanner = new(trimmed, lineNumber, startColumn);
-        scanner.ConsumeWord("cloud");
-        scanner.SkipWhitespace();
-        if (!scanner.ConsumeWord("var"))
-        {
-            AddError(diagnostics, "Expected 'var' after 'cloud'.", scanner.PointSpan());
-            return null;
-        }
-
-        scanner.SkipWhitespace();
-        string? name = scanner.ReadIdentifier();
-        if (name is null)
-        {
-            AddError(diagnostics, "Expected a cloud variable name.", scanner.PointSpan());
-            return null;
-        }
-
-        scanner.SkipWhitespace();
-        if (!scanner.TryConsume('='))
-        {
-            AddError(diagnostics, "Expected '=' after cloud variable name.", scanner.PointSpan());
-            return null;
-        }
-
-        CtsValue? value = scanner.ReadValue(diagnostics);
-        return value is null ? null : new CtsVariableDeclaration(name, value, true, memberSpan);
+        CtsValue? value = scanner.ReadExpression(diagnostics);
+        return value is null ? null : new CtsVariableDeclaration(name, value, isCloud, memberSpan, scope);
     }
 
     private static CtsListDeclaration? ParseListDeclaration(
@@ -781,6 +1142,18 @@ public static class CtsParser
             return null;
         }
 
+        string? declaredReturnType = null;
+        scanner.SkipWhitespace();
+        if (scanner.TryConsume(':'))
+        {
+            scanner.SkipWhitespace();
+            declaredReturnType = scanner.ReadIdentifier();
+            if (declaredReturnType is null)
+            {
+                AddError(diagnostics, "Expected a return type after ':'.", scanner.PointSpan());
+            }
+        }
+
         string? displaySignature = null;
         bool warp = false;
         scanner.SkipWhitespace();
@@ -814,7 +1187,7 @@ public static class CtsParser
 
         index++;
         IReadOnlyList<CtsStatement> statements = ParseStatementBlock(lines, ref index, indent, diagnostics);
-        return new CtsProcedureDefinition(name, parameters, displaySignature, warp, statements, scriptSpan);
+        return new CtsProcedureDefinition(name, parameters, displaySignature, warp, statements, scriptSpan, declaredReturnType);
     }
 
     private static CtsProcedureParameter? ParseParameter(CtsLineScanner scanner, List<CtsDiagnostic> diagnostics)
@@ -844,11 +1217,6 @@ public static class CtsParser
             _ => CtsParameterType.String
         };
 
-        if (typeText is not "num" and not "str" and not "bool")
-        {
-            AddError(diagnostics, "Expected parameter type 'num', 'str', or 'bool'.", scanner.PointSpan());
-        }
-
         CtsValue? defaultValue = null;
         scanner.SkipWhitespace();
         if (scanner.TryConsume('='))
@@ -857,7 +1225,7 @@ public static class CtsParser
             defaultValue = scanner.ReadValue(diagnostics);
         }
 
-        return new CtsProcedureParameter(name, type, defaultValue, new SourceSpan(start.Start, scanner.PointSpan().End));
+        return new CtsProcedureParameter(name, type, defaultValue, new SourceSpan(start.Start, scanner.PointSpan().End), typeText);
     }
 
     private static IReadOnlyList<CtsStatement> ParseStatementBlock(
@@ -927,6 +1295,11 @@ public static class CtsParser
         List<CtsDiagnostic> diagnostics)
     {
         SourceSpan statementSpan = Span(lineNumber, startColumn, startColumn + trimmed.Length);
+        if (StartsWithWord(trimmed, "local"))
+        {
+            return ParseLocalVariableDeclaration(trimmed, lineNumber, startColumn, statementSpan, diagnostics);
+        }
+
         if (trimmed.StartsWith('%'))
         {
             return ParseRawStatement(trimmed, lineNumber, startColumn, statementSpan, diagnostics);
@@ -976,6 +1349,41 @@ public static class CtsParser
         List<CtsValue> arguments = ParseExpressions(argumentText, lineNumber, startColumn + commandLength, diagnostics);
 
         return new CtsAliasStatement(commandName, arguments, statementSpan);
+    }
+
+    private static CtsLocalVariableDeclaration? ParseLocalVariableDeclaration(
+        string trimmed,
+        int lineNumber,
+        int startColumn,
+        SourceSpan statementSpan,
+        List<CtsDiagnostic> diagnostics)
+    {
+        CtsLineScanner scanner = new(trimmed, lineNumber, startColumn);
+        scanner.ConsumeWord("local");
+        scanner.SkipWhitespace();
+        if (!scanner.ConsumeWord("var"))
+        {
+            AddError(diagnostics, "Expected 'var' after 'local'.", scanner.PointSpan());
+            return null;
+        }
+
+        scanner.SkipWhitespace();
+        string? name = scanner.ReadIdentifier();
+        if (name is null)
+        {
+            AddError(diagnostics, "Expected a local variable name.", scanner.PointSpan());
+            return null;
+        }
+
+        scanner.SkipWhitespace();
+        if (!scanner.TryConsume('='))
+        {
+            AddError(diagnostics, "Expected '=' after local variable name.", scanner.PointSpan());
+            return null;
+        }
+
+        CtsValue? value = scanner.ReadExpression(diagnostics);
+        return value is null ? null : new CtsLocalVariableDeclaration(name, value, statementSpan);
     }
 
     private static bool IsStructuredHeader(string trimmed)
@@ -1164,9 +1572,46 @@ public static class CtsParser
         return -1;
     }
 
+    private static IReadOnlyList<string> SplitInlineDeclarationItems(string text)
+    {
+        List<string> items = [];
+        int start = 0;
+        int parenthesisDepth = 0;
+        bool inString = false;
+        for (int index = 0; index < text.Length; index++)
+        {
+            char character = text[index];
+            if (character == '"' && (index == 0 || text[index - 1] != '\\'))
+            {
+                inString = !inString;
+            }
+            else if (!inString && character == '(')
+            {
+                parenthesisDepth++;
+            }
+            else if (!inString && character == ')')
+            {
+                parenthesisDepth = Math.Max(0, parenthesisDepth - 1);
+            }
+            else if (!inString && parenthesisDepth == 0 && character == ',')
+            {
+                items.Add(text[start..index]);
+                start = index + 1;
+            }
+        }
+
+        items.Add(text[start..]);
+        return items;
+    }
+
     private static bool IsValidDataName(string name)
     {
         return name.Length > 0 && (IsIdentifierStart(name[0]) || name.Any(char.IsWhiteSpace));
+    }
+
+    private static bool IsValidSimpleIdentifier(string name)
+    {
+        return name.Length > 0 && IsIdentifierStart(name[0]) && name.Skip(1).All(IsIdentifierPart);
     }
 
     private static string UnquoteIdentifier(string text)
@@ -1208,12 +1653,19 @@ public static class CtsParser
             return null;
         }
 
-        List<CtsValue> arguments = ParseValueList(scanner, ')', diagnostics);
-        if (!scanner.TryConsume(')'))
+        int openParenthesis = trimmed.IndexOf('(');
+        if (!trimmed.EndsWith(')') || openParenthesis < 0)
         {
             AddError(diagnostics, "Expected ')' after call arguments.", scanner.PointSpan());
             return null;
         }
+
+        string argumentText = trimmed[(openParenthesis + 1)..^1];
+        List<CtsValue> arguments = ParseExpressions(
+            argumentText,
+            lineNumber,
+            startColumn + openParenthesis + 1,
+            diagnostics);
 
         return new CtsCallStatement(procedureName, arguments, statementSpan);
     }
@@ -1991,6 +2443,14 @@ public static class CtsParser
             }
 
             int start = _index;
+            if (_text[_index] == '[')
+            {
+                CtsLineScanner scanner = new(_text[_index..], _line, _baseColumn + _index);
+                CtsValue? blockValue = scanner.ReadValue(_diagnostics);
+                _index += scanner.Position;
+                return blockValue;
+            }
+
             if (TryConsume('('))
             {
                 CtsValue? inner = ParseOr();
@@ -2264,6 +2724,8 @@ public static class CtsParser
 
         public bool End => _index >= _text.Length;
 
+        public int Position => _index;
+
         public char Peek()
         {
             return End ? '\0' : _text[_index];
@@ -2354,6 +2816,27 @@ public static class CtsParser
 
             AddError(diagnostics, "Expected a value.", PointSpan());
             return null;
+        }
+
+        public CtsValue? ReadExpression(List<CtsDiagnostic> diagnostics)
+        {
+            SkipWhitespace();
+            if (End)
+            {
+                AddError(diagnostics, "Expected a value.", PointSpan());
+                return null;
+            }
+
+            CtsExpressionParser parser = new(_text[_index..], _line, _baseColumn + _index, diagnostics);
+            List<CtsValue> values = parser.ParseAll();
+            _index = _text.Length;
+            if (values.Count != 1)
+            {
+                AddError(diagnostics, "Expected exactly one expression.", PointSpan());
+                return null;
+            }
+
+            return values[0];
         }
 
         private CtsBlockValue? ReadBlockValue(List<CtsDiagnostic> diagnostics)

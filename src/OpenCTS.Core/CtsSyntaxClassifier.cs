@@ -39,6 +39,16 @@ public static class CtsSyntaxClassifier
         ClassificationContext context)
     {
         CtsToken token = tokens[tokenIndex];
+        if (context.VariableTokenStarts.Contains(token.Start))
+        {
+            return ScratchCategoryColors.Variables;
+        }
+
+        if (context.OperatorTokenStarts.Contains(token.Start))
+        {
+            return ScratchCategoryColors.Operators;
+        }
+
         if (context.MyBlockTokenStarts.Contains(token.Start))
         {
             return ScratchCategoryColors.MyBlocks;
@@ -110,7 +120,12 @@ public static class CtsSyntaxClassifier
                 return ScratchCategoryColors.Operators;
             }
 
-            if (token.Text is "var" or "cloud")
+            if (token.Text is "const" or "enum")
+            {
+                return ScratchCategoryColors.Operators;
+            }
+
+            if (token.Text is "var" or "cloud" or "global" or "local" or "struct" or "num" or "str" or "bool")
             {
                 return ScratchCategoryColors.Variables;
             }
@@ -147,6 +162,16 @@ public static class CtsSyntaxClassifier
                 return ScratchCategoryColors.Events;
             }
 
+            if (context.Constants.Contains(token.Text) || context.Enums.Contains(token.Text))
+            {
+                return ScratchCategoryColors.Operators;
+            }
+
+            if (context.Structs.Contains(token.Text))
+            {
+                return ScratchCategoryColors.Variables;
+            }
+
             CtsAliasDefinition? exactAlias = CtsBlockRegistry.Definitions.FirstOrDefault(
                 definition => string.Equals(definition.Name, token.Text, StringComparison.Ordinal));
             if (exactAlias is not null)
@@ -156,6 +181,10 @@ public static class CtsSyntaxClassifier
 
             int dotIndex = token.Text.IndexOf('.', StringComparison.Ordinal);
             string category = dotIndex >= 0 ? token.Text[..dotIndex] : token.Text;
+            if (context.Enums.Contains(category))
+            {
+                return ScratchCategoryColors.Operators;
+            }
             if (context.Lists.Contains(category))
             {
                 return ScratchCategoryColors.Lists;
@@ -211,9 +240,47 @@ public static class CtsSyntaxClassifier
         HashSet<string> variables = CollectDeclaredNames(tokens, "var");
         HashSet<string> lists = CollectDeclaredNames(tokens, "list");
         HashSet<string> broadcasts = CollectDeclaredNames(tokens, "broadcast");
+        HashSet<string> constants = CollectDeclaredNames(tokens, "const");
+        HashSet<string> enums = CollectDeclaredNames(tokens, "enum");
+        HashSet<string> structs = CollectDeclaredNames(tokens, "struct");
         HashSet<string> procedures = new(StringComparer.Ordinal);
         HashSet<int> myBlockTokenStarts = [];
         HashSet<int> costumeTokenStarts = [];
+        HashSet<int> variableTokenStarts = [];
+        HashSet<int> operatorTokenStarts = [];
+
+        for (int index = 0; index < tokens.Count; index++)
+        {
+            CtsToken token = tokens[index];
+            if (token.Text is "const" or "enum")
+            {
+                if (index + 1 < tokens.Count && tokens[index + 1].Kind == CtsTokenKind.Identifier)
+                {
+                    operatorTokenStarts.Add(tokens[index + 1].Start);
+                }
+            }
+            else if (token.Text == "struct")
+            {
+                if (index + 1 < tokens.Count && tokens[index + 1].Kind == CtsTokenKind.Identifier)
+                {
+                    variableTokenStarts.Add(tokens[index + 1].Start);
+                }
+            }
+
+            if (token.Kind == CtsTokenKind.Identifier && index + 2 < tokens.Count &&
+                tokens[index + 1].Text == ":" && structs.Contains(tokens[index + 2].Text))
+            {
+                variables.Add(token.Text);
+                variableTokenStarts.Add(token.Start);
+                variableTokenStarts.Add(tokens[index + 2].Start);
+            }
+
+            if (token.Kind == CtsTokenKind.Identifier && index + 2 < tokens.Count &&
+                tokens[index + 1].Text == ":" && tokens[index + 2].Text is "num" or "str" or "bool")
+            {
+                variableTokenStarts.Add(token.Start);
+            }
+        }
 
         for (int index = 0; index < tokens.Count; index++)
         {
@@ -319,8 +386,13 @@ public static class CtsSyntaxClassifier
             lists,
             broadcasts,
             procedures,
+            constants,
+            enums,
+            structs,
             myBlockTokenStarts,
-            costumeTokenStarts);
+            costumeTokenStarts,
+            variableTokenStarts,
+            operatorTokenStarts);
     }
 
     private static string GetAssignmentColor(
@@ -389,6 +461,11 @@ public static class CtsSyntaxClassifier
         IReadOnlySet<string> Lists,
         IReadOnlySet<string> Broadcasts,
         IReadOnlySet<string> Procedures,
+        IReadOnlySet<string> Constants,
+        IReadOnlySet<string> Enums,
+        IReadOnlySet<string> Structs,
         IReadOnlySet<int> MyBlockTokenStarts,
-        IReadOnlySet<int> CostumeTokenStarts);
+        IReadOnlySet<int> CostumeTokenStarts,
+        IReadOnlySet<int> VariableTokenStarts,
+        IReadOnlySet<int> OperatorTokenStarts);
 }

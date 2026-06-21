@@ -787,8 +787,11 @@ stage {
 
             Assert.IsTrue(warningResult.Success, FormatIssues(warningResult.Issues));
             Assert.IsTrue(File.Exists(validOutput));
-            Assert.HasCount(1, warningResult.Issues, FormatIssues(warningResult.Issues));
-            Assert.AreEqual(DiagnosticSeverity.Warning, warningResult.Issues[0].Severity);
+            Assert.HasCount(2, warningResult.Issues, FormatIssues(warningResult.Issues));
+            Assert.IsTrue(warningResult.Issues.All(issue => issue.Severity == DiagnosticSeverity.Warning));
+            CollectionAssert.AreEquivalent(
+                new[] { "CTS2001", "CTS2003" },
+                warningResult.Issues.Select(issue => issue.Code).ToArray());
 
             ConversionResult errorResult = converter.ConvertToSb3(invalidPath, invalidOutput);
             Assert.IsFalse(errorResult.Success);
@@ -998,7 +1001,7 @@ stage {
             CtsBlockRegistry.Definitions.Select(definition => $"# alias {definition.Name}/{definition.ArgumentCount}").ToArray(),
             sourceMarkers);
 
-        CtsCompileResult result = CtsCompiler.Compile(firstSource, "all-aliases.mono");
+        CtsCompileResult result = CtsCompiler.Compile(firstSource, "all-aliases.sasm");
         Assert.HasCount(0, result.Diagnostics, string.Join(Environment.NewLine, result.Diagnostics));
         using JsonDocument project = JsonDocument.Parse(result.ProjectJsonBytes);
         string[] emittedOpcodes = project.RootElement.GetProperty("targets").EnumerateArray()
