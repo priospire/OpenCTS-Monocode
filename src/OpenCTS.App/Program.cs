@@ -38,7 +38,7 @@ static class Program
         {
             try
             {
-                foreach (string path in MonocodeCatalogExporter.WriteArtifacts(args[1]))
+                foreach (string path in ScratchAsmCatalogExporter.WriteArtifacts(args[1]))
                 {
                     Console.WriteLine($"Wrote {path}");
                 }
@@ -58,9 +58,9 @@ static class Program
         bool isStandardConversion = args.Length == 2 && !hasRepairSwitch;
         if (!isStandardConversion && !attemptSafeRepair)
         {
-            Console.Error.WriteLine("Usage: OpenCTS.App <input .mono|.sb3|project.json|folder> <output.sb3>");
-            Console.Error.WriteLine("       OpenCTS.App --repair <input.sb3> <output.sb3>");
-            Console.Error.WriteLine("       OpenCTS.App --emit-aliases <output-folder>");
+            Console.Error.WriteLine("Usage: ScratchASM <input .sasm|.mono|.sb3|project.json|folder> <output.sb3>");
+            Console.Error.WriteLine("       ScratchASM --repair <input .sasm|.mono|.sb3|project.json|folder> <output.sb3>");
+            Console.Error.WriteLine("       ScratchASM --emit-aliases <output-folder>");
             return 2;
         }
 

@@ -1,0 +1,142 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ScratchASM",
+  "scopeName": "source.scratchasm",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#hats" },
+    { "include": "#declarations" },
+    { "include": "#control" },
+    { "include": "#operators" },
+    { "include": "#categories" },
+    { "include": "#raw" },
+    { "include": "#punctuation" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.scratchasm",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.scratchasm",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.scratchasm",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.backtick.scratchasm",
+          "begin": "`",
+          "end": "`"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.scratchasm",
+          "match": "\\b-?(?:\\d+\\.\\d+|\\d+|\\.\\d+)\\b"
+        }
+      ]
+    },
+    "hats": {
+      "patterns": [
+        {
+          "name": "entity.name.function.hat.scratchasm",
+          "match": "@[A-Za-z_][A-Za-z0-9_.-]*"
+        }
+      ]
+    },
+    "declarations": {
+      "patterns": [
+        {
+          "name": "keyword.declaration.target.scratchasm",
+          "match": "\\b(?:stage|sprite)\\b"
+        },
+        {
+          "name": "keyword.declaration.data.scratchasm",
+          "match": "\\b(?:global\\s+var|cloud\\s+global\\s+var|sprite\\s+var|local\\s+var|var|list|broadcast)\\b"
+        },
+        {
+          "name": "keyword.declaration.myblock.scratchasm",
+          "match": "\\b(?:proc|call)\\b"
+        },
+        {
+          "name": "keyword.declaration.type.scratchasm",
+          "match": "\\b(?:const|enum|struct|num|str|bool)\\b"
+        },
+        {
+          "name": "keyword.declaration.extension.scratchasm",
+          "match": "\\bextension\\b"
+        },
+        {
+          "name": "keyword.declaration.looks.scratchasm",
+          "match": "\\b(?:costume|state|rotationStyle|center|rect|line|circle|ellipse|path|text|fill|stroke|width|font|anchor|size)\\b"
+        }
+      ]
+    },
+    "control": {
+      "patterns": [
+        {
+          "name": "keyword.control.scratchasm",
+          "match": "\\b(?:repeat|forever|if|else|repeatuntil|waituntil|substack)\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.word.scratchasm",
+          "match": "\\b(?:and|or|not|sqrt|sin|cos|tan|asin|acos|atan|ln|log|log10|exp|pow10|random|round|abs|floor|ceil|ceiling|mod|contains|join|letter|length)\\b"
+        },
+        {
+          "name": "keyword.operator.symbol.scratchasm",
+          "match": "(\\+=|==|!=|<=|>=|[+\\-*/%^=<>])"
+        }
+      ]
+    },
+    "categories": {
+      "patterns": [
+        { "name": "entity.name.function.motion.scratchasm", "match": "\\bmotion\\.[A-Za-z0-9_.-]+\\b" },
+        { "name": "entity.name.function.looks.scratchasm", "match": "\\blooks\\.[A-Za-z0-9_.-]+\\b" },
+        { "name": "entity.name.function.sound.scratchasm", "match": "\\bsound\\.[A-Za-z0-9_.-]+\\b" },
+        { "name": "entity.name.function.events.scratchasm", "match": "\\b(?:event|broadcast)\\.[A-Za-z0-9_.-]+\\b" },
+        { "name": "entity.name.function.control.scratchasm", "match": "\\bcontrol\\.[A-Za-z0-9_.-]+\\b" },
+        { "name": "entity.name.function.sensing.scratchasm", "match": "\\bsensing\\.[A-Za-z0-9_.-]+\\b" },
+        { "name": "entity.name.function.operators.scratchasm", "match": "\\boperator\\.[A-Za-z0-9_.-]+\\b" },
+        { "name": "entity.name.function.variables.scratchasm", "match": "\\bdata\\.[A-Za-z0-9_.-]+\\b" },
+        { "name": "entity.name.function.lists.scratchasm", "match": "\\blist\\.[A-Za-z0-9_.-]+\\b" },
+        { "name": "entity.name.function.myblocks.scratchasm", "match": "\\bprocedures\\.[A-Za-z0-9_.-]+\\b" },
+        { "name": "entity.name.function.extensions.scratchasm", "match": "\\b(?:pen|music|videoSensing|text2speech|translate|speech2text|faceSensing|makeymakey|microbit|ev3|wedo2|gdxfor|boost)\\.[A-Za-z0-9_.-]+\\b" }
+      ]
+    },
+    "raw": {
+      "patterns": [
+        {
+          "name": "keyword.other.raw.scratchasm",
+          "match": "\\b(?:block|input|field|mutation)\\b"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.section.braces.scratchasm",
+          "match": "[{}()[\\],:]"
+        }
+      ]
+    }
+  }
+}

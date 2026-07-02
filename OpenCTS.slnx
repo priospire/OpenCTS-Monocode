@@ -2,8 +2,12 @@
   <Folder Name="/src/">
     <Project Path="src/OpenCTS.App/OpenCTS.App.csproj" />
     <Project Path="src/OpenCTS.Core/OpenCTS.Core.csproj" />
+    <Project Path="src/OpenCTS.LanguageServices/OpenCTS.LanguageServices.csproj" />
+    <Project Path="src/ScratchASM.LanguageHost/ScratchASM.LanguageHost.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/OpenCTS.LanguageServices.Tests/OpenCTS.LanguageServices.Tests.csproj" />
     <Project Path="tests/OpenCTS.Tests/OpenCTS.Tests.csproj" />
+    <Project Path="tests/ScratchASM.LanguageHost.Tests/ScratchASM.LanguageHost.Tests.csproj" />
   </Folder>
 </Solution>

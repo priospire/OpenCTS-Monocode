@@ -1,1 +1,2 @@
-Monocode.exe filter=lfs diff=lfs merge=lfs -text
+ScratchASM.exe filter=lfs diff=lfs merge=lfs -text
+ScratchASM.LanguageHost.exe filter=lfs diff=lfs merge=lfs -text

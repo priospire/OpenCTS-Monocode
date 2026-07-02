@@ -113,7 +113,7 @@ public sealed class CtsLanguageTests
     [TestMethod]
     public void NearTopDocumentationTableCoversEveryCatalogDefinition()
     {
-        string documentationPath = FindRepositoryFile(Path.Combine("docs", "monocode.md"));
+        string documentationPath = FindRepositoryFile(Path.Combine("docs", "scratchasm.md"));
         string documentation = File.ReadAllText(documentationPath);
         int aliasHeading = documentation.IndexOf("## Complete Alias Set", StringComparison.Ordinal);
         int projectHeading = documentation.IndexOf("## Project Shape", StringComparison.Ordinal);
@@ -546,7 +546,7 @@ stage {
     }
 
     [TestMethod]
-    public void CompilesMonocodeDeclarationsCostumesAndGenericBlocks()
+    public void CompilesScratchAsmDeclarationsCostumesAndGenericBlocks()
     {
         CtsCompileResult result = CtsCompiler.Compile("""
 stage {
@@ -748,7 +748,7 @@ sprite "Player" {
     [TestMethod]
     public void SampleHelloMonoCompilesAndCreatesGeneratedAsset()
     {
-        string samplePath = FindRepositoryFile(Path.Combine("samples", "hello.mono"));
+        string samplePath = FindRepositoryFile(Path.Combine("samples", "hello.sasm"));
         string source = File.ReadAllText(samplePath);
 
         CtsCompileResult result = CtsCompiler.Compile(source, samplePath);
@@ -761,7 +761,7 @@ sprite "Player" {
     }
 
     [TestMethod]
-    public void ConverterAllowsWarningsButBlocksErrorsForMonocodeInput()
+    public void ConverterAllowsWarningsButBlocksErrorsForScratchAsmInput()
     {
         string validSource = """
 stage {
@@ -884,7 +884,7 @@ stage {
     }
 
     [TestMethod]
-    public void ClassifierColorsContextualMonocodeSyntax()
+    public void ClassifierColorsContextualScratchAsmSyntax()
     {
         const string source = """
 stage {
@@ -957,11 +957,11 @@ stage {
     [TestMethod]
     public void CatalogExporterIsDeterministicCompleteAndCompileSafe()
     {
-        string firstJson = MonocodeCatalogExporter.GenerateJson();
-        string firstSource = MonocodeCatalogExporter.GenerateMonocode();
+        string firstJson = ScratchAsmCatalogExporter.GenerateJson();
+        string firstSource = ScratchAsmCatalogExporter.GenerateScratchAsm();
 
-        Assert.AreEqual(firstJson, MonocodeCatalogExporter.GenerateJson());
-        Assert.AreEqual(firstSource, MonocodeCatalogExporter.GenerateMonocode());
+        Assert.AreEqual(firstJson, ScratchAsmCatalogExporter.GenerateJson());
+        Assert.AreEqual(firstSource, ScratchAsmCatalogExporter.GenerateScratchAsm());
 
         using JsonDocument catalog = JsonDocument.Parse(firstJson);
         Assert.AreEqual(1, catalog.RootElement.GetProperty("schemaVersion").GetInt32());
@@ -1017,7 +1017,7 @@ stage {
         }
 
         Assert.AreEqual(
-            File.ReadAllText(FindRepositoryFile(Path.Combine("samples", "all-aliases.mono"))),
+            File.ReadAllText(FindRepositoryFile(Path.Combine("samples", "all-aliases.sasm"))),
             firstSource);
         Assert.AreEqual(
             File.ReadAllText(FindRepositoryFile(Path.Combine("samples", "all-aliases.json"))),

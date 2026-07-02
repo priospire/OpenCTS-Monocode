@@ -1,0 +1,70 @@
+{
+  "name": "scratchasm",
+  "displayName": "ScratchASM",
+  "description": "ScratchASM language support for OpenCTS Scratch projects.",
+  "version": "0.2.0",
+  "publisher": "opencts",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "activationEvents": [
+    "onLanguage:scratchasm",
+    "onCommand:scratchasm.restartLanguageHost"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "scratchasm",
+        "aliases": [
+          "ScratchASM",
+          "scratchasm"
+        ],
+        "extensions": [
+          ".sasm",
+          ".mono"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "scratchasm",
+        "scopeName": "source.scratchasm",
+        "path": "./syntaxes/scratchasm.tmLanguage.json"
+      }
+    ],
+    "themes": [
+      {
+        "label": "ScratchASM Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/scratchasm-dark-color-theme.json"
+      },
+      {
+        "label": "ScratchASM Light",
+        "uiTheme": "vs",
+        "path": "./themes/scratchasm-light-color-theme.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "scratchasm.restartLanguageHost",
+        "title": "ScratchASM: Restart Language Host"
+      }
+    ],
+    "configuration": {
+      "title": "ScratchASM",
+      "properties": {
+        "scratchasm.languageHostPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to ScratchASM.LanguageHost.exe or ScratchASM.LanguageHost.dll. Empty uses the repo build output when available."
+        }
+      }
+    }
+  }
+}

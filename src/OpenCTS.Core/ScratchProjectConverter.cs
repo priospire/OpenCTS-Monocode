@@ -40,17 +40,11 @@ public sealed class ScratchProjectConverter
             return Failure([new ValidationIssue("Output path must end with .sb3.", "$", null)]);
         }
 
-        if (options.AttemptSafeRepair &&
-            !string.Equals(Path.GetExtension(inputPath), ".sb3", StringComparison.OrdinalIgnoreCase))
-        {
-            return Failure([new ValidationIssue("Safe repair is only available for .sb3 input archives.", "$", null)]);
-        }
-
         try
         {
-            if (IsMonocodeInput(inputPath))
+            if (IsScratchAsmInput(inputPath))
             {
-                return ConvertMonocodeToSb3(inputPath, fullOutputPath, options);
+                return ConvertScratchAsmToSb3(inputPath, fullOutputPath, options);
             }
 
             using ScratchInputPackage package = ScratchInputPackage.Open(inputPath, options.AttemptSafeRepair);
@@ -58,6 +52,17 @@ public sealed class ScratchProjectConverter
                 string.Equals(Path.GetFullPath(package.SourceFilePath), fullOutputPath, StringComparison.OrdinalIgnoreCase))
             {
                 return Failure([new ValidationIssue("Output path must be different from the input .sb3 file.", "$", null)]);
+            }
+
+            if (options.AttemptSafeRepair && TryRemoveUtf8Bom(package.ProjectJsonBytes, out byte[] normalizedJson))
+            {
+                package.ApplyRepair(normalizedJson, new Dictionary<string, byte[]>());
+                issues.Add(new ValidationIssue(
+                    "Removed UTF-8 byte order mark from project.json.",
+                    "$",
+                    new SourceLocation(1, 1),
+                    DiagnosticSeverity.Warning,
+                    "REPAIR100"));
             }
 
             JsonSourceMap sourceMap;
@@ -141,17 +146,26 @@ public sealed class ScratchProjectConverter
         }
     }
 
-    private static ConversionResult ConvertMonocodeToSb3(string inputPath, string fullOutputPath, ConversionOptions options)
+    private static ConversionResult ConvertScratchAsmToSb3(string inputPath, string fullOutputPath, ConversionOptions options)
     {
         string fullInputPath = Path.GetFullPath(inputPath);
-        if (!File.Exists(fullInputPath) && options.MonocodeSourceText is null)
+        string? sourceOverride = options.ScratchAsmSourceText ?? options.MonocodeSourceText;
+        if (!File.Exists(fullInputPath) && sourceOverride is null)
         {
             return Failure([new ValidationIssue($"Input path was not found: {fullInputPath}", "$", null)]);
         }
 
-        string sourceText = options.MonocodeSourceText ?? File.ReadAllText(fullInputPath);
+        string sourceText = sourceOverride ?? File.ReadAllText(fullInputPath);
+        List<ValidationIssue> issues = [];
+        if (options.AttemptSafeRepair)
+        {
+            ScratchAsmSourceRepairResult repair = ScratchAsmSourceRepairer.Repair(sourceText);
+            sourceText = repair.SourceText;
+            issues.AddRange(repair.Issues);
+        }
+
         CtsCompileResult compileResult = CtsCompiler.Compile(sourceText, fullInputPath);
-        List<ValidationIssue> issues = compileResult.Diagnostics.Select(ToValidationIssue).ToList();
+        issues.AddRange(compileResult.Diagnostics.Select(ToValidationIssue));
         if (issues.Any(static issue => issue.Severity == DiagnosticSeverity.Error))
         {
             return Failure(issues);
@@ -190,10 +204,9 @@ public sealed class ScratchProjectConverter
         };
     }
 
-    private static bool IsMonocodeInput(string inputPath)
+    private static bool IsScratchAsmInput(string inputPath)
     {
-        string extension = Path.GetExtension(inputPath);
-        return string.Equals(extension, ".mono", StringComparison.OrdinalIgnoreCase);
+        return ScratchAsmLanguage.IsSupportedSourceName(inputPath);
     }
 
     private static ValidationIssue ToValidationIssue(CtsDiagnostic diagnostic)
@@ -235,6 +248,18 @@ public sealed class ScratchProjectConverter
         }
 
         return new ValidationIssue($"JSON syntax error: {ex.Message}", "$", location);
+    }
+
+    private static bool TryRemoveUtf8Bom(byte[] bytes, out byte[] normalized)
+    {
+        if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+        {
+            normalized = bytes[3..];
+            return true;
+        }
+
+        normalized = bytes;
+        return false;
     }
 
     private static void WriteSb3(

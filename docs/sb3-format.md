@@ -7,7 +7,7 @@ A Scratch 3 `.sb3` file is a zip archive. The archive root contains:
 
 Asset files are normally named with the value stored in each asset object's `md5ext` field, such as `cd21514d0531fdffb22204e0ec5ed84a.svg`.
 
-Scratch stores artwork as assets, not as block code. When Monocode costume drawing syntax is used, OpenCTS generates self-contained SVG asset bytes, computes the lowercase MD5 hex `assetId`, writes `md5ext` as `assetId + ".svg"`, and includes that SVG file at the `.sb3` zip root.
+Scratch stores artwork as assets, not as block code. When ScratchASM costume drawing syntax is used, OpenCTS generates self-contained SVG asset bytes, computes the lowercase MD5 hex `assetId`, writes `md5ext` as `assetId + ".svg"`, and includes that SVG file at the `.sb3` zip root.
 
 ## Supported Source Forms
 
@@ -16,7 +16,7 @@ OpenCTS accepts these equivalent source forms:
 - A ready-made `.sb3` zip.
 - A folder containing `project.json` and asset files.
 - A `project.json` file with asset files in the same folder.
-- A Monocode `.mono` source file, which OpenCTS compiles to `project.json` plus generated assets.
+- A ScratchASM `.sasm` source file, or legacy `.mono` file, which OpenCTS compiles to `project.json` plus generated assets.
 
 Folder example:
 
@@ -113,7 +113,7 @@ This validator is intentionally conservative. It checks project packaging and co
 The UI includes an opt-in `Attempt safe repair` checkbox for `.sb3` inputs. The CLI equivalent is:
 
 ```powershell
-.\Monocode.exe --repair damaged.sb3 repaired.sb3
+.\ScratchASM.exe --repair damaged.sb3 repaired.sb3
 ```
 
 Repair never modifies the source archive. It only operates on a readable ZIP containing parseable `project.json`, then validates the result before writing output. Recoverable repairs include missing root arrays/metadata, missing standard target properties, a missing stage, malformed or missing costume references that can be replaced with a generated default SVG, malformed block entries without usable opcodes, missing required block properties, and dangling top-level block links. Every change is reported as a warning.

@@ -1,0 +1,32 @@
+{
+  "name": "ScratchASM Light",
+  "type": "light",
+  "colors": {
+    "editor.background": "#FFFFFF",
+    "editor.foreground": "#181F2A",
+    "editorLineNumber.foreground": "#8491A3",
+    "editorCursor.foreground": "#2563EB",
+    "activityBar.background": "#EAF0F8",
+    "sideBar.background": "#F4F7FB",
+    "statusBar.background": "#2563EB"
+  },
+  "tokenColors": [
+    { "scope": "comment", "settings": { "foreground": "#6A737D" } },
+    { "scope": "string", "settings": { "foreground": "#0B6E4F" } },
+    { "scope": "constant.numeric", "settings": { "foreground": "#7A3E9D" } },
+    { "scope": "keyword.declaration.data, entity.name.function.variables", "settings": { "foreground": "#FF8C1A" } },
+    { "scope": "entity.name.function.lists", "settings": { "foreground": "#FF661A" } },
+    { "scope": "entity.name.function.motion", "settings": { "foreground": "#4C97FF" } },
+    { "scope": "keyword.declaration.looks, entity.name.function.looks", "settings": { "foreground": "#9966FF" } },
+    { "scope": "entity.name.function.sound", "settings": { "foreground": "#CF63CF" } },
+    { "scope": "entity.name.function.events, entity.name.function.hat", "settings": { "foreground": "#D68A00" } },
+    { "scope": "keyword.control, entity.name.function.control", "settings": { "foreground": "#D88200" } },
+    { "scope": "entity.name.function.sensing", "settings": { "foreground": "#287FA4" } },
+    { "scope": "keyword.operator, entity.name.function.operators, keyword.declaration.type", "settings": { "foreground": "#238A23" } },
+    { "scope": "keyword.declaration.myblock, entity.name.function.myblocks", "settings": { "foreground": "#D93C62" } },
+    { "scope": "keyword.declaration.extension, entity.name.function.extensions", "settings": { "foreground": "#0F8A68" } },
+    { "scope": "keyword.other.raw", "settings": { "foreground": "#455A64" } },
+    { "scope": "keyword.declaration.target", "settings": { "foreground": "#181F2A", "fontStyle": "bold" } },
+    { "scope": "punctuation", "settings": { "foreground": "#556070" } }
+  ]
+}

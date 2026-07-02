@@ -92,7 +92,7 @@ stage {
 
             Assert.IsFalse(result.Success);
             Assert.AreEqual(
-                "Input must be a .mono file, a .sb3 file, a project.json file, or a folder containing project.json.",
+            "Input must be a .sasm/.mono source file, a .sb3 file, a project.json file, or a folder containing project.json.",
                 AssertSingleIssue(result).Message);
             Assert.IsFalse(File.Exists(outputPath));
         }
@@ -386,6 +386,91 @@ stage {
         finally
         {
             DeleteIfExists(inputPath);
+            DeleteIfExists(outputPath);
+        }
+    }
+
+    [TestMethod]
+    public void SafeRepairAppliesScratchAsmSourceFixupsBeforeCompile()
+    {
+        string inputPath = WriteTempSource(".sasm", """
+global var score = 0
+@greenflag:
+  set score to 5
+  change score by 3
+""");
+        string outputPath = TempSb3Path();
+
+        try
+        {
+            ConversionResult result = new ScratchProjectConverter().ConvertToSb3(
+                inputPath,
+                outputPath,
+                new ConversionOptions { AttemptSafeRepair = true });
+
+            Assert.IsTrue(result.Success, FormatIssues(result.Issues));
+            Assert.IsTrue(result.Issues.Any(issue => issue.Code == "REPAIR200"));
+
+            using ZipArchive archive = ZipFile.OpenRead(outputPath);
+            using JsonDocument project = JsonDocument.Parse(archive.GetEntry("project.json")!.Open());
+            JsonElement blocks = project.RootElement.GetProperty("targets")[0].GetProperty("blocks");
+            Assert.IsTrue(blocks.EnumerateObject().Any(block =>
+                block.Value.GetProperty("opcode").GetString() == "data_setvariableto"));
+            Assert.IsTrue(blocks.EnumerateObject().Any(block =>
+                block.Value.GetProperty("opcode").GetString() == "data_changevariableby"));
+        }
+        finally
+        {
+            DeleteIfExists(inputPath);
+            DeleteIfExists(outputPath);
+        }
+    }
+
+    [TestMethod]
+    public void SafeRepairAcceptsProjectJsonInput()
+    {
+        string projectDir = CreateProjectFolder("{}");
+        string inputPath = Path.Combine(projectDir, "project.json");
+        string outputPath = TempSb3Path();
+
+        try
+        {
+            ConversionResult result = new ScratchProjectConverter().ConvertToSb3(
+                inputPath,
+                outputPath,
+                new ConversionOptions { AttemptSafeRepair = true });
+
+            Assert.IsTrue(result.Success, FormatIssues(result.Issues));
+            Assert.IsTrue(result.Issues.Any(issue => issue.Code == "REPAIR100"));
+            Assert.IsTrue(File.Exists(outputPath));
+        }
+        finally
+        {
+            Directory.Delete(projectDir, recursive: true);
+            DeleteIfExists(outputPath);
+        }
+    }
+
+    [TestMethod]
+    public void SafeRepairAcceptsProjectFolderWithUtf8BomProjectJson()
+    {
+        string projectDir = CreateProjectFolder("\uFEFF{}");
+        string outputPath = TempSb3Path();
+
+        try
+        {
+            ConversionResult result = new ScratchProjectConverter().ConvertToSb3(
+                projectDir,
+                outputPath,
+                new ConversionOptions { AttemptSafeRepair = true });
+
+            Assert.IsTrue(result.Success, FormatIssues(result.Issues));
+            Assert.IsTrue(result.Issues.Any(issue => issue.Message.Contains("byte order mark", StringComparison.OrdinalIgnoreCase)));
+            Assert.IsTrue(File.Exists(outputPath));
+        }
+        finally
+        {
+            Directory.Delete(projectDir, recursive: true);
             DeleteIfExists(outputPath);
         }
     }

@@ -3,9 +3,9 @@ using System.Text.Json;
 
 namespace OpenCTS.Core;
 
-public static class MonocodeCatalogExporter
+public static class ScratchAsmCatalogExporter
 {
-    public const string MonocodeFileName = "all-aliases.mono";
+    public const string ScratchAsmFileName = "all-aliases.sasm";
     public const string JsonFileName = "all-aliases.json";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -55,7 +55,7 @@ public static class MonocodeCatalogExporter
         return NormalizeNewlines(JsonSerializer.Serialize(document, JsonOptions)) + "\n";
     }
 
-    public static string GenerateMonocode()
+    public static string GenerateScratchAsm()
     {
         StringBuilder source = new();
         source.AppendLine("# Generated from CtsBlockRegistry. Regenerate with --emit-aliases.");
@@ -113,11 +113,11 @@ public static class MonocodeCatalogExporter
         string fullDirectory = Path.GetFullPath(outputDirectory);
         Directory.CreateDirectory(fullDirectory);
 
-        string monocodePath = Path.Combine(fullDirectory, MonocodeFileName);
+        string scratchAsmPath = Path.Combine(fullDirectory, ScratchAsmFileName);
         string jsonPath = Path.Combine(fullDirectory, JsonFileName);
-        File.WriteAllText(monocodePath, GenerateMonocode(), new UTF8Encoding(false));
+        File.WriteAllText(scratchAsmPath, GenerateScratchAsm(), new UTF8Encoding(false));
         File.WriteAllText(jsonPath, GenerateJson(), new UTF8Encoding(false));
-        return [monocodePath, jsonPath];
+        return [scratchAsmPath, jsonPath];
     }
 
     private static IEnumerable<CtsAliasDefinition> OrderedDefinitions()

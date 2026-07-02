@@ -1,0 +1,32 @@
+{
+  "name": "ScratchASM Dark",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#0B0F16",
+    "editor.foreground": "#E5EAF2",
+    "editorLineNumber.foreground": "#5F6B7D",
+    "editorCursor.foreground": "#F97316",
+    "activityBar.background": "#10141B",
+    "sideBar.background": "#141A24",
+    "statusBar.background": "#111827"
+  },
+  "tokenColors": [
+    { "scope": "comment", "settings": { "foreground": "#7A8494" } },
+    { "scope": "string", "settings": { "foreground": "#0FBD8C" } },
+    { "scope": "constant.numeric", "settings": { "foreground": "#A78BFA" } },
+    { "scope": "keyword.declaration.data, entity.name.function.variables", "settings": { "foreground": "#FF8C1A" } },
+    { "scope": "entity.name.function.lists", "settings": { "foreground": "#FF661A" } },
+    { "scope": "entity.name.function.motion", "settings": { "foreground": "#4C97FF" } },
+    { "scope": "keyword.declaration.looks, entity.name.function.looks", "settings": { "foreground": "#9966FF" } },
+    { "scope": "entity.name.function.sound", "settings": { "foreground": "#CF63CF" } },
+    { "scope": "entity.name.function.events, entity.name.function.hat", "settings": { "foreground": "#FFBF00" } },
+    { "scope": "keyword.control, entity.name.function.control", "settings": { "foreground": "#FFAB19" } },
+    { "scope": "entity.name.function.sensing", "settings": { "foreground": "#5CB1D6" } },
+    { "scope": "keyword.operator, entity.name.function.operators, keyword.declaration.type", "settings": { "foreground": "#59C059" } },
+    { "scope": "keyword.declaration.myblock, entity.name.function.myblocks", "settings": { "foreground": "#FF6680" } },
+    { "scope": "keyword.declaration.extension, entity.name.function.extensions", "settings": { "foreground": "#0FBD8C" } },
+    { "scope": "keyword.other.raw", "settings": { "foreground": "#90A4AE" } },
+    { "scope": "keyword.declaration.target", "settings": { "foreground": "#E5EAF2", "fontStyle": "bold" } },
+    { "scope": "punctuation", "settings": { "foreground": "#AAB4C2" } }
+  ]
+}

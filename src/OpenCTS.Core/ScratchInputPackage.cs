@@ -78,7 +78,7 @@ internal sealed class ScratchInputPackage : IDisposable
                 null);
         }
 
-        throw new InvalidDataException("Input must be a .mono file, a .sb3 file, a project.json file, or a folder containing project.json.");
+        throw new InvalidDataException("Input must be a .sasm/.mono source file, a .sb3 file, a project.json file, or a folder containing project.json.");
     }
 
     public static ScratchInputPackage FromGenerated(

@@ -2,177 +2,126 @@
 
 ## Current State
 
-OpenCTS is a .NET 10 Windows utility that validates Scratch 3 projects, compiles Monocode, optionally repairs recoverable `.sb3` damage, and writes Scratch-readable `.sb3` archives.
+OpenCTS is a .NET 10 Windows utility and ScratchASM IDE for Scratch 3 projects. It validates Scratch project sources, compiles ScratchASM `.sasm` source, accepts legacy `.mono`, decompiles `.sb3` projects into editable ScratchASM for display/editing, attempts safe repair for supported inputs, and writes Scratch-readable `.sb3` archives.
 
-## ScratchASM v0.2 Work In Progress
+The canonical repository is `https://github.com/priospire/OpenCTS-Monocode`.
 
-The verified core-language phase of the Monocode-to-ScratchASM migration is implemented. User-facing application branding, canonical files, the desktop UI, decompiler, dedicated IDE, VS Code extension, MCP server, and release executable have not yet been migrated.
+## Key Paths
 
-Implemented and verified core behavior:
-
-- `.sasm` is the canonical ScratchASM source extension
-- `.mono` remains compatible and emits warning `CTS2003` once per compile
-- file-scoped constants and explicitly valued enums
-- flat structs lowered to ordinary Scratch variables
-- explicit stage-global and sprite-local variable scopes
-- mutable procedure-local variables lowered through standard Scratch-compatible frame lists
-- collision-safe generated identifiers and ScratchASM-aware syntax classification
-- clean build and 62 passing tests with zero warnings
-
-Monocode is the user-facing language name and `.mono` is its only accepted source extension. `.cts` is explicitly rejected because that extension is already associated with TypeScript. Internal implementation types retain the established `Cts*` names.
-
-Key paths:
-
-- `src/OpenCTS.Core`: package loading, validation, repair, Monocode parsing/compilation, generated assets, and ZIP output
-- `src/OpenCTS.Core/CtsBlockCatalog.cs`: complete native core, legacy, and bundled-extension alias catalog
-- `src/OpenCTS.Core/MonocodeCatalogExporter.cs`: deterministic all-alias source and JSON catalog generator
-- `src/OpenCTS.Core/ScratchProjectRepairer.cs`: conservative safe-repair implementation
-- `src/OpenCTS.App`: WinForms UI and CLI entry point
-- `tests/OpenCTS.Tests`: catalog, compiler, diagnostics, converter, repair, and packaging tests
-- `samples/hello.mono`: primary native-syntax smoke sample
-- `samples/all-aliases.mono`: generated compile-safe use of every registered alias
-- `samples/all-aliases.json`: generated schema-v1 alias, binding, shape, extension, and color catalog
-- `samples/minimal-project`: folder-style Scratch smoke input
-- `docs/monocode.md`: complete Monocode reference with the generated near-top alias table
-- `docs/sb3-format.md`: Scratch packaging, validation, and repair guide
-- `Monocode.exe`: root self-contained Windows executable copied from `artifacts/publish/OpenCTS.App.exe`
+- `ScratchASM.exe`: root self-contained Windows IDE/CLI executable tracked through Git LFS.
+- `ScratchASM.LanguageHost.exe`: root self-contained LSP/MCP executable tracked through Git LFS.
+- `src/OpenCTS.Core`: package loading, validation, repair, ScratchASM parsing/compilation, generated assets, decompile/edit/merge, and ZIP output.
+- `src/OpenCTS.Core/ScratchAsmCatalogExporter.cs`: deterministic all-alias `.sasm` and JSON catalog generator.
+- `src/OpenCTS.Core/ScratchAsmSourceRepairer.cs`: source repair for safe Scratch-like phrase rewrites and cleanup.
+- `src/OpenCTS.Core/ScratchProjectRepairer.cs`: conservative Scratch project/package repair implementation.
+- `src/OpenCTS.LanguageServices`: diagnostics, symbols, completions, color spans, workspace path policy, and catalog lookup.
+- `src/ScratchASM.LanguageHost`: LSP and MCP JSON-RPC host.
+- `src/OpenCTS.App`: WinForms ScratchASM IDE and CLI entry point.
+- `editors/vscode-scratchasm`: VS Code syntax highlighting, diagnostics, completions, themes, and extension glue.
+- `docs/scratchasm.md`: complete ScratchASM language/tooling reference.
+- `docs/monocode.md`: compatibility notice for the old language name.
+- `samples/hello.sasm`: primary smoke sample.
+- `samples/all-aliases.sasm`: generated compile-safe use of every registered alias.
+- `samples/all-aliases.json`: generated schema-v1 alias, binding, shape, extension, and color catalog.
 
 ## Inputs And CLI
 
 Accepted conversion inputs:
 
-- `.mono` Monocode source
-- `.sb3` archive with root `project.json`
-- folder containing `project.json` and root asset files
-- `project.json` with asset files beside it
+- `.sasm` ScratchASM source.
+- legacy `.mono` source, with warning `CTS2003`.
+- `.sb3` archive with root `project.json`.
+- folder containing `project.json` and root asset files.
+- `project.json` with asset files beside it.
 
-Standard conversion:
-
-```powershell
-.\Monocode.exe <input.mono|input.sb3|project.json|folder> <output.sb3>
-```
-
-Opt-in repair, available only for `.sb3` input:
+Commands:
 
 ```powershell
-.\Monocode.exe --repair <damaged.sb3> <repaired.sb3>
+.\ScratchASM.exe
+.\ScratchASM.exe <input.sasm|input.mono|input.sb3|project.json|folder> <output.sb3>
+.\ScratchASM.exe --repair <input.sasm|input.mono|input.sb3|project.json|folder> <output.sb3>
+.\ScratchASM.exe --emit-aliases <output-folder>
+.\ScratchASM.LanguageHost.exe --lsp
+.\ScratchASM.LanguageHost.exe --mcp --workspace <folder>
 ```
 
-Regenerate the checked-in alias artifacts:
+## ScratchASM Surface
 
-```powershell
-.\Monocode.exe --emit-aliases <output-folder>
-```
-
-## Monocode Surface
-
-The native catalog currently contains 258 alias definitions. Tests pin every supported core, hidden legacy, and bundled-extension opcode and compile every catalog definition. Menu shadows and My Blocks internals are generated by the compiler rather than exposed as manual helper aliases.
-
-Supported language features include:
+ScratchASM supports:
 
 - targets: `stage { ... }`, `sprite "Name" { ... }`
-- declarations: `var`, `cloud var`, `list`, `broadcast`, `extension`, `state`, `rotationStyle`
+- declarations: `var`, `cloud var`, `sprite var`, `global var`, `list`, `broadcast`, `extension`, `state`, `rotationStyle`
+- `const`, explicit enums, flat structs, sprite-only variables, stage-global variables
+- function-scoped procedure locals lowered through Scratch-compatible frame lists
 - generated SVG costumes with `line`, `rect`, `circle`, `ellipse`, `path`, and `text`
 - native hats such as `@greenflag:`, `@event.received message:`, and bundled-extension hats
 - all cataloged native stack, reporter, Boolean, C-block, cap, legacy, and extension aliases
-- structured `repeat`, `forever`, `if`/`else`, and `repeatuntil` using indentation and `:`
-- direct variable operations: `score = 5`, `score += 3`
-- list methods: `.add`, `.delete`, `.delete_all`, `.insert`, `.replace`, `.show`, `.hide`
+- structured `repeat`, `forever`, `if`/`else`, `repeatuntil`, and `waituntil`
+- variable operations: `score = 5`, `score += 3`; safe repair can rewrite `set score to 5` and `change score by 3`
+- list methods: `.add`, `.delete`, `.delete_all`, `.insert`, `.replace`, `.show`, `.hide`; safe repair can rewrite common Scratch-like list phrases
 - list reporters: `.item()`, `.index()`, `.length()`, `.contains()`, `.contents()`
-- expression precedence with unary, arithmetic, comparison, and Boolean operators
-- `+ - * / % ^ < > <= >= == != and or not`, plus `&& || !`
-- Scratch reporter functions including random, string operators, rounding, trigonometry, `ln`, `log10`, `exp`/`e^`, and `pow10`/`10^`
-- custom procedures with `num`, `str`, and `bool` parameters, defaults, display signatures, warp mode, and calls
-- exact generic hats/blocks/reporters/shadows/fields/mutations/substacks
-- raw `%` opcode compatibility with warning `CTS2001`
+- expressions with `+ - * / % ^ < > <= >= == != and or not`, plus `&& || !`
+- Scratch reporter functions including random/string operators, rounding, trig, `ln`, `log10`, `exp`/`e^`, and `pow10`/`10^`
+- custom procedures with `num`, `str`, `bool` parameters, defaults, display signatures, warp mode, and calls
+- generic `block` opcode escape for exact fields, inputs, mutations, shadows, and substacks
 
-The QoL `^` operator is lowered only when reliable. The exponent must be an integer literal from -64 through 64 and the base must be stable. Positive powers become repeated multiplication, zero becomes one, and negative powers use reciprocal division. Dynamic/fractional exponents and nondeterministic bases produce `CTS1020`. `<=`, `>=`, and `!=` are exactly lowered through Scratch comparison and `not` blocks.
+The QoL `^` operator is lowered only when reliable. The exponent must be an integer literal from `-64` through `64`, and the base must be stable. Positive powers become repeated multiplication, zero becomes one, and negative powers use reciprocal division. Dynamic/fractional exponents and nondeterministic bases produce `CTS1020`.
 
-Native extension aliases automatically add their Scratch extension IDs. Arbitrary third-party extension blocks are preserved during existing-project conversion but are not rewritten unless an exact semantic equivalent exists; no speculative converter is used.
+## IDE, VS Code, And MCP
 
-## Editor Behavior
+The WinForms IDE has opaque modern styling, dark/light mode, file/folder browsing, source editing, `.sb3` decompile-to-edit display, Scratch category color coding, warning/error diagnostics, double-click navigation from diagnostics to source spans, compile, repair, and save-source actions.
 
-The WinForms editor:
+The VS Code extension in `editors/vscode-scratchasm` contributes `.sasm`/`.mono` language support, TextMate Scratch-category coloring, ScratchASM dark/light themes, diagnostics, and completions through `ScratchASM.LanguageHost`.
 
-- accepts `.mono`, `.sb3`, and `.json` in the file picker; `.cts` is absent
-- colors every catalog alias using its Scratch category color
-- colors native controls, data names, expressions, broadcasts, scoped custom-block parameters, costume drawing syntax, generic opcodes, literals, and comments
-- runs debounced live Monocode compilation off the UI thread
-- shows errors in red and warnings in amber with severity, diagnostic code, exact line/column, and message in `Status and diagnostics`
-- navigates to and selects a diagnostic's exact source span when its status line is double-clicked
-- runs conversion in the background so the UI remains responsive
-- includes an `Attempt safe repair` checkbox
+The MCP host uses workspace-relative paths and rejects rooted, UNC, device, escaping, and reparse-point paths. MCP tools:
 
-Warnings remain non-blocking and errors prevent output. The checked-in alias artifacts are generated exclusively from `CtsBlockRegistry`; tests require byte-identical regeneration, all 258 unique alias signatures, and zero compiler diagnostics from `all-aliases.mono`.
+- `analyze_source`
+- `compile_to_sb3`
+- `decompile_sb3`
+- `merge_edited_source`
+- `repair_input`
+- `lookup_catalog`
+- `get_project_info`
 
 ## Safe Repair
 
-Repair never modifies the source archive and writes output only after validation succeeds. The input must be a readable ZIP with unique safe root paths and parseable `project.json`.
+Repair never modifies the source input and writes output only after validation succeeds.
 
-Recoverable operations include:
+Supported repair inputs:
 
-- missing root arrays and metadata
-- missing standard target properties
-- adding, naming, and positioning the single required stage at target index zero
-- demoting extra stage targets
-- empty/malformed/missing costume references replaced by a generated default SVG
-- unusable block entries without valid opcodes removed
-- missing block shape properties restored
-- dangling `next` links cleared and missing-parent blocks promoted safely
+- `.sasm`/`.mono`: removes BOM, normalizes line endings, expands tabs, replaces smart quotes/non-breaking spaces, rewrites safe Scratch-like variable/list phrases, wraps an implicit stage, and appends missing closing braces when brace balance is clearly positive.
+- `.sb3`: validates safe root ZIP entries, rejects duplicate/unsafe archive paths, repairs readable `project.json`, restores root/target defaults, adds/moves the single required stage, demotes extra stages, repairs block containers/links, and generates a default SVG costume when needed.
+- `project.json`/folders: applies readable JSON repair, including UTF-8 BOM removal in repair mode, and generated-asset behavior.
 
-Unreadable ZIP data, malformed JSON, unsafe/duplicate ZIP paths, missing sounds, and damage without a reliable correction remain errors.
-
-## Validation
-
-Validation covers JSON syntax and source locations, required root/target fields, exact stage count/order/name, core block object shape, safe asset names, asset metadata, and referenced asset presence. Warnings allow output; errors block output.
-
-Generated SVG assets are self-contained and XML-escaped. Their lowercase MD5 byte hash is used as `assetId`, and each asset is stored as `<assetId>.svg` at the archive root.
+Malformed JSON that cannot be parsed after BOM cleanup, unreadable ZIP data, unsafe ZIP paths, unknown semantics, and source that still fails after safe rewrites remain errors.
 
 ## Verification Status
 
-Final verification completed successfully on 2026-06-20:
+Final verification completed successfully on 2026-07-02:
 
 ```powershell
-dotnet build OpenCTS.slnx --no-restore --verbosity:minimal --no-incremental
-dotnet test OpenCTS.slnx --no-restore --no-build
-dotnet publish src/OpenCTS.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/publish --no-restore
-Copy-Item artifacts/publish/OpenCTS.App.exe Monocode.exe -Force
-.\Monocode.exe --emit-aliases artifacts\alias-export-smoke
-.\Monocode.exe samples\all-aliases.mono artifacts\all-aliases-smoke.sb3
-.\Monocode.exe artifacts\all-aliases-smoke.sb3 artifacts\all-aliases-roundtrip.sb3
-.\Monocode.exe samples\hello.mono artifacts\hello-color-diagnostics-smoke.sb3
+dotnet restore OpenCTS.slnx
+dotnet build OpenCTS.slnx --no-restore --verbosity:minimal
+dotnet test OpenCTS.slnx --no-restore --no-build --verbosity:minimal
+dotnet publish src/OpenCTS.App/OpenCTS.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/publish/app
+dotnet publish src/ScratchASM.LanguageHost/ScratchASM.LanguageHost.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o artifacts/publish/host
+.\ScratchASM.exe samples\hello.sasm artifacts\root-exe-smoke.sb3
+.\ScratchASM.exe samples\all-aliases.sasm artifacts\all-aliases-smoke.sb3
+.\ScratchASM.exe --repair artifacts\damaged-project artifacts\root-repaired-folder-smoke.sb3
 ```
 
 Results:
 
-- clean build: 0 warnings, 0 errors
-- tests: 49 passed, 0 failed
-- generated alias artifacts: 258 unique signatures; emitted CLI copies were byte-identical to the checked-in files
-- `all-aliases.mono`: 1,062 lines, zero compiler diagnostics, 876 serialized blocks, and 13 extension IDs
-- all-alias `.sb3` conversion and `.sb3` round trip both succeeded
-- documentation test verifies every alias/opcode definition appears in the near-top complete table
-- `.cts` executable smoke: exit code 1 and no output file
-- hidden UI launch: process remained running until explicitly stopped
-- `scratch-vm` 5.0.300 loaded the normal Monocode regression archive as `Stage,Player` with 45 blocks
-- `scratch-vm` 5.0.300 directly deserialized the all-alias archive as `Stage,Alias Sprite` with 1,108 runtime blocks and all 13 extension IDs
-- a headless full load of the all-alias archive requires browser Worker support for the experimental `speech2text` and `faceSensing` extension IDs; project deserialization itself succeeded
-- `scratch-vm` 5.0.300 loaded the repaired archive as `Stage,Damaged sprite` with 1 retained valid block
-- expected headless VM warnings were limited to absent storage/translation services
-- final executable SHA-256: `D58D6C7896770CAFA9DF83EA22549EE0D9C7DB9B38507F45404A9AF90AA76E58`
-- `samples/all-aliases.mono` SHA-256: `D0D04B358EEF5D5DE030B00746A7F246CA8B9166F964E09695394DC5CD95FAC5`
-- `samples/all-aliases.json` SHA-256: `30D786C6FC16CA65851857B4B34371831C79D68465194D46F3D4D79046AAB893`
+- clean solution build: 0 warnings, 0 errors
+- tests: 77 passed, 0 failed
+- VS Code extension JSON files parse successfully
+- `ScratchASM.exe` wrote `artifacts/root-exe-smoke.sb3`
+- `ScratchASM.exe` wrote `artifacts/all-aliases-smoke.sb3`
+- `ScratchASM.exe --repair` repaired a BOM-prefixed damaged folder `project.json` and wrote `artifacts/root-repaired-folder-smoke.sb3`
+- `ScratchASM.LanguageHost.exe --mcp --workspace .` returned a valid MCP initialize response
 
-Published artifacts:
+Published root artifacts:
 
-- `Monocode.exe`
-- `artifacts/publish/OpenCTS.App.exe`
-- `samples/all-aliases.mono`
-- `samples/all-aliases.json`
-- `artifacts/all-aliases-smoke.sb3`
-- `artifacts/all-aliases-roundtrip.sb3`
-- `artifacts/hello-color-diagnostics-smoke.sb3`
-- `artifacts/repair-final3-output.sb3`
+- `ScratchASM.exe`
+- `ScratchASM.LanguageHost.exe`
 
-## Notes
-
-The canonical repository is `priospire/OpenCTS-Monocode`. Build and smoke artifacts are ignored by `.gitignore`; the self-contained `Monocode.exe` is tracked through Git LFS and is also distributed as a GitHub release asset.

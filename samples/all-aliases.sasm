@@ -1,0 +1,1062 @@
+# Generated from CtsBlockRegistry. Regenerate with --emit-aliases.
+# Every catalog signature has one '# alias name/argument-count' marker.
+
+stage {
+  var output = 0
+  var score = 0
+  list items = []
+  broadcast start = "start"
+
+  # alias event.stageclicked/0
+  @event.stageclicked:
+    control.stop "this script"
+}
+
+sprite "Alias Sprite" {
+  proc consume(value:num):
+    control.stop "this script"
+
+  proc consume_boolean(value:bool):
+    control.stop "this script"
+
+  proc demonstrate_custom_block(value:num, label:str, enabled:bool=false) as "demonstrate %n %s %b":
+    control.stop "this script"
+
+  proc demonstrate_custom_block_call():
+    call demonstrate_custom_block(1, "sample", 1)
+
+  proc alias_sample_000():
+    # alias abs/1
+    output = abs(1)
+
+  proc alias_sample_001():
+    # alias acos/1
+    output = acos(1)
+
+  proc alias_sample_002():
+    # alias add/2
+    output = add(1, 1)
+
+  proc alias_sample_003():
+    # alias and/2
+    output = and(1, 1)
+
+  proc alias_sample_004():
+    # alias asin/1
+    output = asin(1)
+
+  proc alias_sample_005():
+    # alias atan/1
+    output = atan(1)
+
+  # alias boost.color/1
+  @boost.color 1:
+    control.stop "this script"
+
+  proc alias_sample_006():
+    # alias boost.direction/2
+    boost.direction 1 1
+
+  proc alias_sample_007():
+    # alias boost.light/1
+    boost.light 1
+
+  proc alias_sample_008():
+    # alias boost.motorfor/2
+    boost.motorfor 1 1
+
+  proc alias_sample_009():
+    # alias boost.motoroff/1
+    boost.motoroff 1
+
+  proc alias_sample_010():
+    # alias boost.motoron/1
+    boost.motoron 1
+
+  proc alias_sample_011():
+    # alias boost.position/1
+    output = boost.position(1)
+
+  proc alias_sample_012():
+    # alias boost.power/2
+    boost.power 1 1
+
+  proc alias_sample_013():
+    # alias boost.rotations/2
+    boost.rotations 1 1
+
+  proc alias_sample_014():
+    # alias boost.seeing/1
+    output = boost.seeing(1)
+
+  proc alias_sample_015():
+    # alias boost.tilt/1
+    output = boost.tilt(1)
+
+  # alias boost.whentilted/1
+  @boost.whentilted 1:
+    control.stop "this script"
+
+  proc alias_sample_016():
+    # alias ceil/1
+    output = ceil(1)
+
+  proc alias_sample_017():
+    # alias contains/2
+    output = contains(1, 1)
+
+  # alias control.clone/0
+  @control.clone:
+    control.stop "this script"
+
+  proc alias_sample_018():
+    # alias control.createclone/1
+    control.createclone 1
+
+  proc alias_sample_019():
+    # alias control.deleteclone/0
+    control.deleteclone
+
+  proc alias_sample_020():
+    # alias control.stop/1
+    control.stop "this script"
+
+  proc alias_sample_021():
+    # alias control.wait/1
+    control.wait 1
+
+  proc alias_sample_022():
+    # alias cos/1
+    output = cos(1)
+
+  proc alias_sample_023():
+    # alias data.change/2
+    data.change score 1
+
+  proc alias_sample_024():
+    # alias data.hide/1
+    data.hide score
+
+  proc alias_sample_025():
+    # alias data.set/2
+    data.set score 1
+
+  proc alias_sample_026():
+    # alias data.show/1
+    data.show score
+
+  proc alias_sample_027():
+    # alias data.value/1
+    output = data.value(score)
+
+  proc alias_sample_028():
+    # alias divide/2
+    output = divide(1, 1)
+
+  proc alias_sample_029():
+    # alias equals/2
+    output = equals(1, 1)
+
+  proc alias_sample_030():
+    # alias ev3.beep/2
+    ev3.beep 1 1
+
+  proc alias_sample_031():
+    # alias ev3.brightness/0
+    output = ev3.brightness()
+
+  # alias ev3.brightnessbelow/1
+  @ev3.brightnessbelow 1:
+    control.stop "this script"
+
+  # alias ev3.button/1
+  @ev3.button 1:
+    control.stop "this script"
+
+  proc alias_sample_032():
+    # alias ev3.distance/0
+    output = ev3.distance()
+
+  # alias ev3.distancebelow/1
+  @ev3.distancebelow 1:
+    control.stop "this script"
+
+  proc alias_sample_033():
+    # alias ev3.motor/2
+    ev3.motor 1 1
+
+  proc alias_sample_034():
+    # alias ev3.motorback/2
+    ev3.motorback 1 1
+
+  proc alias_sample_035():
+    # alias ev3.position/1
+    output = ev3.position(1)
+
+  proc alias_sample_036():
+    # alias ev3.power/2
+    ev3.power 1 1
+
+  proc alias_sample_037():
+    # alias ev3.pressed/1
+    output = ev3.pressed(1)
+
+  # alias event.backdrop/1
+  @event.backdrop 1:
+    control.stop "this script"
+
+  proc alias_sample_038():
+    # alias event.broadcast/1
+    event.broadcast start
+
+  proc alias_sample_039():
+    # alias event.broadcastwait/1
+    event.broadcastwait start
+
+  # alias event.clicked/0
+  @event.clicked:
+    control.stop "this script"
+
+  # alias event.greaterthan/2
+  @event.greaterthan 1 1:
+    control.stop "this script"
+
+  # alias event.greenflag/0
+  @event.greenflag:
+    control.stop "this script"
+
+  # alias event.key/1
+  @event.key 1:
+    control.stop "this script"
+
+  # alias event.received/1
+  @event.received start:
+    control.stop "this script"
+
+  proc alias_sample_040():
+    # alias exp/1
+    output = exp(1)
+
+  proc alias_sample_041():
+    # alias faceSensing.detected/0
+    output = faceSensing.detected()
+
+  proc alias_sample_042():
+    # alias faceSensing.goto/1
+    faceSensing.goto 1
+
+  proc alias_sample_043():
+    # alias faceSensing.point/0
+    faceSensing.point
+
+  proc alias_sample_044():
+    # alias faceSensing.setsize/0
+    faceSensing.setsize
+
+  proc alias_sample_045():
+    # alias faceSensing.size/0
+    output = faceSensing.size()
+
+  proc alias_sample_046():
+    # alias faceSensing.tilt/0
+    output = faceSensing.tilt()
+
+  # alias faceSensing.whendetected/0
+  @faceSensing.whendetected:
+    control.stop "this script"
+
+  # alias faceSensing.whentilted/1
+  @faceSensing.whentilted 1:
+    control.stop "this script"
+
+  # alias faceSensing.whentouching/1
+  @faceSensing.whentouching 1:
+    control.stop "this script"
+
+  proc alias_sample_047():
+    # alias floor/1
+    output = floor(1)
+
+  proc alias_sample_048():
+    # alias forever/0
+    forever:
+      call consume(1)
+
+  proc alias_sample_049():
+    # alias gdxfor.acceleration/1
+    output = gdxfor.acceleration(1)
+
+  proc alias_sample_050():
+    # alias gdxfor.falling/0
+    output = gdxfor.falling()
+
+  proc alias_sample_051():
+    # alias gdxfor.force/0
+    output = gdxfor.force()
+
+  # alias gdxfor.forceevent/1
+  @gdxfor.forceevent 1:
+    control.stop "this script"
+
+  # alias gdxfor.gesture/1
+  @gdxfor.gesture 1:
+    control.stop "this script"
+
+  proc alias_sample_052():
+    # alias gdxfor.spin/1
+    output = gdxfor.spin(1)
+
+  proc alias_sample_053():
+    # alias gdxfor.tilt/1
+    output = gdxfor.tilt(1)
+
+  proc alias_sample_054():
+    # alias gdxfor.tilted/1
+    output = gdxfor.tilted(1)
+
+  # alias gdxfor.whentilted/1
+  @gdxfor.whentilted 1:
+    control.stop "this script"
+
+  proc alias_sample_055():
+    # alias greater/2
+    output = greater(1, 1)
+
+  proc alias_sample_056():
+    # alias if/1
+    if 1:
+      call consume(1)
+
+  proc alias_sample_057():
+    # alias ifelse/1
+    if 1:
+      call consume(1)
+    else:
+      call consume(1)
+
+  proc alias_sample_058():
+    # alias join/2
+    output = join(1, 1)
+
+  proc alias_sample_059():
+    # alias legacy.control.allatonce/0
+    legacy.control.allatonce
+
+  proc alias_sample_060():
+    # alias legacy.control.clearcounter/0
+    legacy.control.clearcounter
+
+  proc alias_sample_061():
+    # alias legacy.control.counter/0
+    output = legacy.control.counter()
+
+  proc alias_sample_062():
+    # alias legacy.control.foreach/2
+    legacy.control.foreach score 1
+
+  proc alias_sample_063():
+    # alias legacy.control.incrcounter/0
+    legacy.control.incrcounter
+
+  proc alias_sample_064():
+    # alias legacy.control.while/1
+    legacy.control.while 1
+
+  # alias legacy.event.touching/1
+  @legacy.event.touching 1:
+    control.stop "this script"
+
+  proc alias_sample_065():
+    # alias legacy.looks.changestretch/1
+    legacy.looks.changestretch 1
+
+  proc alias_sample_066():
+    # alias legacy.looks.hideall/0
+    legacy.looks.hideall
+
+  proc alias_sample_067():
+    # alias legacy.looks.setstretch/1
+    legacy.looks.setstretch 1
+
+  proc alias_sample_068():
+    # alias legacy.motion.align/1
+    legacy.motion.align 1
+
+  proc alias_sample_069():
+    # alias legacy.motion.scrollright/1
+    legacy.motion.scrollright 1
+
+  proc alias_sample_070():
+    # alias legacy.motion.scrollup/1
+    legacy.motion.scrollup 1
+
+  proc alias_sample_071():
+    # alias legacy.motion.xscroll/0
+    output = legacy.motion.xscroll()
+
+  proc alias_sample_072():
+    # alias legacy.motion.yscroll/0
+    output = legacy.motion.yscroll()
+
+  proc alias_sample_073():
+    # alias legacy.music.mididrum/2
+    legacy.music.mididrum 1 1
+
+  proc alias_sample_074():
+    # alias legacy.music.midiinstrument/1
+    legacy.music.midiinstrument 1
+
+  proc alias_sample_075():
+    # alias legacy.pen.changehue/1
+    legacy.pen.changehue 1
+
+  proc alias_sample_076():
+    # alias legacy.pen.changeshade/1
+    legacy.pen.changeshade 1
+
+  proc alias_sample_077():
+    # alias legacy.pen.sethue/1
+    legacy.pen.sethue 1
+
+  proc alias_sample_078():
+    # alias legacy.pen.setshade/1
+    legacy.pen.setshade 1
+
+  proc alias_sample_079():
+    # alias legacy.sensing.loud/0
+    output = legacy.sensing.loud()
+
+  proc alias_sample_080():
+    # alias legacy.sensing.userid/0
+    output = legacy.sensing.userid()
+
+  proc alias_sample_081():
+    # alias legacy.sound.changetempo/1
+    legacy.sound.changetempo 1
+
+  proc alias_sample_082():
+    # alias legacy.sound.instrument/1
+    legacy.sound.instrument 1
+
+  proc alias_sample_083():
+    # alias legacy.sound.playdrum/2
+    legacy.sound.playdrum 1 1
+
+  proc alias_sample_084():
+    # alias legacy.sound.playnote/2
+    legacy.sound.playnote 1 1
+
+  proc alias_sample_085():
+    # alias legacy.sound.rest/1
+    legacy.sound.rest 1
+
+  proc alias_sample_086():
+    # alias legacy.sound.settempo/1
+    legacy.sound.settempo 1
+
+  proc alias_sample_087():
+    # alias legacy.wedo2.playnote/2
+    legacy.wedo2.playnote 1 1
+
+  proc alias_sample_088():
+    # alias length/1
+    output = length(1)
+
+  proc alias_sample_089():
+    # alias less/2
+    output = less(1, 1)
+
+  proc alias_sample_090():
+    # alias letter/2
+    output = letter(1, 1)
+
+  proc alias_sample_091():
+    # alias list.add/2
+    list.add 1 items
+
+  proc alias_sample_092():
+    # alias list.contains/2
+    output = list.contains(1, items)
+
+  proc alias_sample_093():
+    # alias list.contents/1
+    output = list.contents(items)
+
+  proc alias_sample_094():
+    # alias list.delete/2
+    list.delete 1 items
+
+  proc alias_sample_095():
+    # alias list.deleteall/1
+    list.deleteall items
+
+  proc alias_sample_096():
+    # alias list.hide/1
+    list.hide items
+
+  proc alias_sample_097():
+    # alias list.index/2
+    output = list.index(1, items)
+
+  proc alias_sample_098():
+    # alias list.insert/3
+    list.insert 1 1 items
+
+  proc alias_sample_099():
+    # alias list.item/2
+    output = list.item(1, items)
+
+  proc alias_sample_100():
+    # alias list.length/1
+    output = list.length(items)
+
+  proc alias_sample_101():
+    # alias list.replace/3
+    list.replace 1 1 items
+
+  proc alias_sample_102():
+    # alias list.show/1
+    list.show items
+
+  proc alias_sample_103():
+    # alias ln/1
+    output = ln(1)
+
+  proc alias_sample_104():
+    # alias log10/1
+    output = log10(1)
+
+  proc alias_sample_105():
+    # alias looks.backdrop/1
+    looks.backdrop 1
+
+  proc alias_sample_106():
+    # alias looks.backdropnumbername/1
+    output = looks.backdropnumbername(1)
+
+  proc alias_sample_107():
+    # alias looks.backdropwait/1
+    looks.backdropwait 1
+
+  proc alias_sample_108():
+    # alias looks.changeeffect/2
+    looks.changeeffect 1 1
+
+  proc alias_sample_109():
+    # alias looks.changesize/1
+    looks.changesize 1
+
+  proc alias_sample_110():
+    # alias looks.cleareffects/0
+    looks.cleareffects
+
+  proc alias_sample_111():
+    # alias looks.costume/1
+    looks.costume 1
+
+  proc alias_sample_112():
+    # alias looks.costumenumbername/1
+    output = looks.costumenumbername(1)
+
+  proc alias_sample_113():
+    # alias looks.hide/0
+    looks.hide
+
+  proc alias_sample_114():
+    # alias looks.layer/1
+    looks.layer 1
+
+  proc alias_sample_115():
+    # alias looks.movelayers/2
+    looks.movelayers 1 1
+
+  proc alias_sample_116():
+    # alias looks.nextbackdrop/0
+    looks.nextbackdrop
+
+  proc alias_sample_117():
+    # alias looks.nextcostume/0
+    looks.nextcostume
+
+  proc alias_sample_118():
+    # alias looks.say/1
+    looks.say 1
+
+  proc alias_sample_119():
+    # alias looks.say/2
+    looks.say 1 1
+
+  proc alias_sample_120():
+    # alias looks.seteffect/2
+    looks.seteffect 1 1
+
+  proc alias_sample_121():
+    # alias looks.setsize/1
+    looks.setsize 1
+
+  proc alias_sample_122():
+    # alias looks.show/0
+    looks.show
+
+  proc alias_sample_123():
+    # alias looks.size/0
+    output = looks.size()
+
+  proc alias_sample_124():
+    # alias looks.think/1
+    looks.think 1
+
+  proc alias_sample_125():
+    # alias looks.think/2
+    looks.think 1 1
+
+  # alias makeymakey.code/1
+  @makeymakey.code 1:
+    control.stop "this script"
+
+  # alias makeymakey.key/1
+  @makeymakey.key 1:
+    control.stop "this script"
+
+  proc alias_sample_126():
+    # alias mathop/2
+    output = mathop(1, 1)
+
+  # alias microbit.button/1
+  @microbit.button 1:
+    control.stop "this script"
+
+  proc alias_sample_127():
+    # alias microbit.clear/0
+    microbit.clear
+
+  proc alias_sample_128():
+    # alias microbit.display/1
+    microbit.display 1
+
+  # alias microbit.gesture/1
+  @microbit.gesture 1:
+    control.stop "this script"
+
+  # alias microbit.pin/1
+  @microbit.pin 1:
+    control.stop "this script"
+
+  proc alias_sample_129():
+    # alias microbit.pressed/1
+    output = microbit.pressed(1)
+
+  proc alias_sample_130():
+    # alias microbit.text/1
+    microbit.text 1
+
+  proc alias_sample_131():
+    # alias microbit.tilt/1
+    output = microbit.tilt(1)
+
+  proc alias_sample_132():
+    # alias microbit.tilted/1
+    output = microbit.tilted(1)
+
+  # alias microbit.whentilted/1
+  @microbit.whentilted 1:
+    control.stop "this script"
+
+  proc alias_sample_133():
+    # alias mod/2
+    output = mod(1, 1)
+
+  proc alias_sample_134():
+    # alias motion.changex/1
+    motion.changex 1
+
+  proc alias_sample_135():
+    # alias motion.changey/1
+    motion.changey 1
+
+  proc alias_sample_136():
+    # alias motion.direction/0
+    output = motion.direction()
+
+  proc alias_sample_137():
+    # alias motion.glide/2
+    motion.glide 1 1
+
+  proc alias_sample_138():
+    # alias motion.glide/3
+    motion.glide 1 1 1
+
+  proc alias_sample_139():
+    # alias motion.goto/1
+    motion.goto 1
+
+  proc alias_sample_140():
+    # alias motion.goto/2
+    motion.goto 1 1
+
+  proc alias_sample_141():
+    # alias motion.ifonedgebounce/0
+    motion.ifonedgebounce
+
+  proc alias_sample_142():
+    # alias motion.move/1
+    motion.move 1
+
+  proc alias_sample_143():
+    # alias motion.pointtowards/1
+    motion.pointtowards 1
+
+  proc alias_sample_144():
+    # alias motion.rotationstyle/1
+    motion.rotationstyle 1
+
+  proc alias_sample_145():
+    # alias motion.setdirection/1
+    motion.setdirection 1
+
+  proc alias_sample_146():
+    # alias motion.setx/1
+    motion.setx 1
+
+  proc alias_sample_147():
+    # alias motion.sety/1
+    motion.sety 1
+
+  proc alias_sample_148():
+    # alias motion.turnleft/1
+    motion.turnleft 1
+
+  proc alias_sample_149():
+    # alias motion.turnright/1
+    motion.turnright 1
+
+  proc alias_sample_150():
+    # alias motion.x/0
+    output = motion.x()
+
+  proc alias_sample_151():
+    # alias motion.y/0
+    output = motion.y()
+
+  proc alias_sample_152():
+    # alias multiply/2
+    output = multiply(1, 1)
+
+  proc alias_sample_153():
+    # alias music.changetempo/1
+    music.changetempo 1
+
+  proc alias_sample_154():
+    # alias music.instrument/1
+    music.instrument 1
+
+  proc alias_sample_155():
+    # alias music.playdrum/2
+    music.playdrum 1 1
+
+  proc alias_sample_156():
+    # alias music.playnote/2
+    music.playnote 1 1
+
+  proc alias_sample_157():
+    # alias music.rest/1
+    music.rest 1
+
+  proc alias_sample_158():
+    # alias music.settempo/1
+    music.settempo 1
+
+  proc alias_sample_159():
+    # alias music.tempo/0
+    output = music.tempo()
+
+  proc alias_sample_160():
+    # alias not/1
+    output = not(1)
+
+  proc alias_sample_161():
+    # alias or/2
+    output = or(1, 1)
+
+  proc alias_sample_162():
+    # alias pen.changecolor/2
+    pen.changecolor 1 1
+
+  proc alias_sample_163():
+    # alias pen.changesize/1
+    pen.changesize 1
+
+  proc alias_sample_164():
+    # alias pen.clear/0
+    pen.clear
+
+  proc alias_sample_165():
+    # alias pen.color/1
+    pen.color 1
+
+  proc alias_sample_166():
+    # alias pen.down/0
+    pen.down
+
+  proc alias_sample_167():
+    # alias pen.setcolor/2
+    pen.setcolor 1 1
+
+  proc alias_sample_168():
+    # alias pen.setsize/1
+    pen.setsize 1
+
+  proc alias_sample_169():
+    # alias pen.stamp/0
+    pen.stamp
+
+  proc alias_sample_170():
+    # alias pen.up/0
+    pen.up
+
+  proc alias_sample_171():
+    # alias pow10/1
+    output = pow10(1)
+
+  proc alias_sample_172():
+    # alias random/2
+    output = random(1, 1)
+
+  proc alias_sample_173():
+    # alias repeat/1
+    repeat 1:
+      call consume(1)
+
+  proc alias_sample_174():
+    # alias repeatuntil/1
+    repeatuntil 1:
+      call consume(1)
+
+  proc alias_sample_175():
+    # alias round/1
+    output = round(1)
+
+  proc alias_sample_176():
+    # alias sensing.answer/0
+    output = sensing.answer()
+
+  proc alias_sample_177():
+    # alias sensing.ask/1
+    sensing.ask 1
+
+  proc alias_sample_178():
+    # alias sensing.colorstouching/2
+    output = sensing.colorstouching(1, 1)
+
+  proc alias_sample_179():
+    # alias sensing.current/1
+    output = sensing.current(1)
+
+  proc alias_sample_180():
+    # alias sensing.dayssince2000/0
+    output = sensing.dayssince2000()
+
+  proc alias_sample_181():
+    # alias sensing.distance/1
+    output = sensing.distance(1)
+
+  proc alias_sample_182():
+    # alias sensing.dragmode/1
+    sensing.dragmode 1
+
+  proc alias_sample_183():
+    # alias sensing.key/1
+    output = sensing.key(1)
+
+  proc alias_sample_184():
+    # alias sensing.loudness/0
+    output = sensing.loudness()
+
+  proc alias_sample_185():
+    # alias sensing.mousedown/0
+    output = sensing.mousedown()
+
+  proc alias_sample_186():
+    # alias sensing.mousex/0
+    output = sensing.mousex()
+
+  proc alias_sample_187():
+    # alias sensing.mousey/0
+    output = sensing.mousey()
+
+  proc alias_sample_188():
+    # alias sensing.of/2
+    output = sensing.of(1, 1)
+
+  proc alias_sample_189():
+    # alias sensing.online/0
+    output = sensing.online()
+
+  proc alias_sample_190():
+    # alias sensing.resettimer/0
+    sensing.resettimer
+
+  proc alias_sample_191():
+    # alias sensing.timer/0
+    output = sensing.timer()
+
+  proc alias_sample_192():
+    # alias sensing.touching/1
+    output = sensing.touching(1)
+
+  proc alias_sample_193():
+    # alias sensing.touchingcolor/1
+    output = sensing.touchingcolor(1)
+
+  proc alias_sample_194():
+    # alias sensing.username/0
+    output = sensing.username()
+
+  proc alias_sample_195():
+    # alias sin/1
+    output = sin(1)
+
+  proc alias_sample_196():
+    # alias sound.changeeffect/2
+    sound.changeeffect 1 1
+
+  proc alias_sample_197():
+    # alias sound.changevolume/1
+    sound.changevolume 1
+
+  proc alias_sample_198():
+    # alias sound.clear/0
+    sound.clear
+
+  proc alias_sample_199():
+    # alias sound.play/1
+    sound.play 1
+
+  proc alias_sample_200():
+    # alias sound.playuntil/1
+    sound.playuntil 1
+
+  proc alias_sample_201():
+    # alias sound.seteffect/2
+    sound.seteffect 1 1
+
+  proc alias_sample_202():
+    # alias sound.setvolume/1
+    sound.setvolume 1
+
+  proc alias_sample_203():
+    # alias sound.stopall/0
+    sound.stopall
+
+  proc alias_sample_204():
+    # alias sound.volume/0
+    output = sound.volume()
+
+  # alias speech2text.hear/1
+  @speech2text.hear 1:
+    control.stop "this script"
+
+  proc alias_sample_205():
+    # alias speech2text.listen/0
+    speech2text.listen
+
+  proc alias_sample_206():
+    # alias speech2text.speech/0
+    output = speech2text.speech()
+
+  proc alias_sample_207():
+    # alias sqrt/1
+    output = sqrt(1)
+
+  proc alias_sample_208():
+    # alias subtract/2
+    output = subtract(1, 1)
+
+  proc alias_sample_209():
+    # alias tan/1
+    output = tan(1)
+
+  proc alias_sample_210():
+    # alias text2speech.language/1
+    text2speech.language 1
+
+  proc alias_sample_211():
+    # alias text2speech.speak/1
+    text2speech.speak 1
+
+  proc alias_sample_212():
+    # alias text2speech.voice/1
+    text2speech.voice 1
+
+  proc alias_sample_213():
+    # alias translate.language/0
+    output = translate.language()
+
+  proc alias_sample_214():
+    # alias translate.translate/2
+    output = translate.translate(1, 1)
+
+  # alias video.motiongreater/1
+  @video.motiongreater 1:
+    control.stop "this script"
+
+  proc alias_sample_215():
+    # alias video.on/2
+    output = video.on(1, 1)
+
+  proc alias_sample_216():
+    # alias video.setstate/1
+    video.setstate 1
+
+  proc alias_sample_217():
+    # alias video.transparency/1
+    video.transparency 1
+
+  proc alias_sample_218():
+    # alias waituntil/1
+    waituntil 1
+
+  proc alias_sample_219():
+    # alias wedo2.direction/2
+    wedo2.direction 1 1
+
+  proc alias_sample_220():
+    # alias wedo2.distance/0
+    output = wedo2.distance()
+
+  # alias wedo2.distanceevent/2
+  @wedo2.distanceevent 1 1:
+    control.stop "this script"
+
+  proc alias_sample_221():
+    # alias wedo2.light/1
+    wedo2.light 1
+
+  proc alias_sample_222():
+    # alias wedo2.motorfor/2
+    wedo2.motorfor 1 1
+
+  proc alias_sample_223():
+    # alias wedo2.motoroff/1
+    wedo2.motoroff 1
+
+  proc alias_sample_224():
+    # alias wedo2.motoron/1
+    wedo2.motoron 1
+
+  proc alias_sample_225():
+    # alias wedo2.power/2
+    wedo2.power 1 1
+
+  proc alias_sample_226():
+    # alias wedo2.tilt/1
+    output = wedo2.tilt(1)
+
+  proc alias_sample_227():
+    # alias wedo2.tilted/1
+    output = wedo2.tilted(1)
+
+  # alias wedo2.whentilted/1
+  @wedo2.whentilted 1:
+    control.stop "this script"
+}

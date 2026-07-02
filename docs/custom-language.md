@@ -1,12 +1,12 @@
-# Monocode Language
+# ScratchASM Language
 
-The OpenCTS custom language is now named Monocode.
+The OpenCTS custom language is now named ScratchASM.
 
-- Monocode source files use `.mono` exclusively.
-- The full language reference is [docs/monocode.md](monocode.md).
+- ScratchASM source files use `.sasm`. Legacy `.mono` files are accepted for compatibility.
+- The full language reference is [docs/scratchasm.md](scratchasm.md).
 
 Smoke command:
 
 ```powershell
-dotnet run --project src/OpenCTS.App -- samples/hello.mono artifacts/hello-from-monocode.sb3
+dotnet run --project src/OpenCTS.App -- samples/hello.sasm artifacts/hello-from-scratchasm.sb3
 ```

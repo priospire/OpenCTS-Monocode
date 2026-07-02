@@ -29,6 +29,8 @@ public sealed class ConversionOptions
 {
     public bool Overwrite { get; init; } = true;
 
+    public string? ScratchAsmSourceText { get; init; }
+
     public string? MonocodeSourceText { get; init; }
 
     public bool AttemptSafeRepair { get; init; }
